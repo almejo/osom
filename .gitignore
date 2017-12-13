@@ -49,6 +49,6 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-roms/cpu_instrs/**
-roms/cpu_instrs.gb
+roms/**
 
+*.iml
