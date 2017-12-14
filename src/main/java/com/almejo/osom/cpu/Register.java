@@ -25,6 +25,6 @@ class Register {
 
 	@Override
 	public String toString() {
-		return this.name+"="+ Integer.toHexString(this.getValue()) + "(" + Integer.toBinaryString(this.getValue()) + ")";
+		return this.name+"=0x"+ Integer.toHexString(this.getValue()) + " (b" + Integer.toBinaryString(this.getHi()) + " " + Integer.toBinaryString(this.getLo()) + ")";
 	}
 }

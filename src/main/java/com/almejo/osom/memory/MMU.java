@@ -2,7 +2,7 @@ package com.almejo.osom.memory;
 
 public class MMU {
 
-	private Integer [] memory = new Integer[0x10000];
+	private int [] memory = new int[0x10000];
 	private Cartridge cartridge;
 
 	public void addCartridge(Cartridge cartridge) {
@@ -14,7 +14,7 @@ public class MMU {
 	}
 
 	public int getByte(int address) {
-		if (address >=0 && address <= 0x3fff) {
+		if (address >=0 && address <= 0x7fff) {
 			return this.cartridge.getByte(address);
 		}
 		return memory[address];

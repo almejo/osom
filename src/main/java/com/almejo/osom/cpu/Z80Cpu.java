@@ -14,6 +14,7 @@ public class Z80Cpu {
 	private static final int OPCODE_LDD_HL_A = 0x32;
 	private static final int OPCODE_LD_C_N = 0xe;
 	private static final int OPCODE_LD_B_N = 0x6;
+	private static final int OPCODE_DEC_B = 0x5;
 
 	@Setter
 	private MMU mmu;
@@ -26,10 +27,10 @@ public class Z80Cpu {
 	private Register DE = new Register("DC");
 	private Register HL = new Register("HL");
 
-	static byte FLAG_Z = 7;
-	static byte FLAG_N = 6;
-	static byte FLAG_H = 5;
-	static byte FLAG_C = 4;
+	static byte FLAG_ZERO = 7;
+	static byte FLAG_SUBSTRACT = 6;
+	static byte FLAG_HALF_CARRY = 5;
+	static byte FLAG_CARRY = 4;
 
 	private int programCounter;
 	private Register stackPointer = new Register("SP");
@@ -107,16 +108,27 @@ public class Z80Cpu {
 			case OPCODE_LD_B_N:
 				executeLD_HI_n(BC);
 				break;
+			case OPCODE_DEC_B:
+				executeDEC_HI(BC);
+				break;
 			default:
 				throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode));
 		}
 		printRegisters();
 	}
 
+	private void executeDEC_HI(Register register) {
+		System.out.println("DEC " + register.getName().charAt(0));
+		alu.dec(register);
+	}
+
 	private void executeLDD_HL_A() {
+		int oldValue = mmu.getByte(HL.getValue());
 		mmu.setByte(HL.getValue(), AF.getHi());
-		System.out.println("LDD [" + HL.getName() + "], " + AF.getName().charAt(0) + "; " + Integer.toHexString(mmu.getByte(HL.getValue())));
-		alu.dec(HL);
+		int newValue = mmu.getByte(HL.getValue());
+
+		System.out.println("LDD [" + HL.getName() + "], " + AF.getName().charAt(0) + "; " + Integer.toHexString(oldValue) + " ==> " + Integer.toHexString(newValue));
+		alu.dec(HL, false);
 	}
 
 	private void executeLD_HI_n(Register register) {
@@ -144,6 +156,7 @@ public class Z80Cpu {
 	private void executeLD_N_nn(Register register) {
 		int value = mmu.getWord(programCounter);
 		System.out.println("LD " + register.getName() + ", 0x" + Integer.toHexString(value));
+		register.setValue(value);
 		programCounter++;
 		programCounter++;
 	}

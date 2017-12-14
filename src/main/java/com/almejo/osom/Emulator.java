@@ -18,21 +18,20 @@ public class Emulator {
 		byte[] bytes = Files.readAllBytes(path);
 		MMU mmu = new MMU();
 		Cartridge cartridge = new Cartridge(bytes);
-		System.out.println(cartridge);
 		mmu.addCartridge(cartridge);
 		Z80Cpu cpu = new Z80Cpu();
 		cpu.setMmu(mmu);
 		cpu.reset();
 
-		JTextArea textArea = new JTextArea();
-		textArea.setText(cartridge.toString());
-		textArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-
-		JFrame frame = new JFrame();
-		frame.getContentPane().add(new JScrollPane(textArea));
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.pack();
-		frame.setVisible(true);
+//		JTextArea textArea = new JTextArea();
+//		textArea.setText(cartridge.toString());
+//		textArea.setFont(new Font("monospaced", Font.PLAIN, 12));
+//
+//		JFrame frame = new JFrame();
+//		frame.getContentPane().add(new JScrollPane(textArea));
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.pack();
+//		frame.setVisible(true);
 
 		//noinspection InfiniteLoopStatement
 		while (true) {

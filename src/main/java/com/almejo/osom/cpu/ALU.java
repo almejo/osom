@@ -9,14 +9,22 @@ public class ALU {
 
 	public int xor(int a, int b) {
 		int value = a ^ b;
-		cpu.setFlag(Z80Cpu.FLAG_Z, value == 0);
-		cpu.setFlag(Z80Cpu.FLAG_H, false);
-		cpu.setFlag(Z80Cpu.FLAG_C, false);
-		cpu.setFlag(Z80Cpu.FLAG_N, false);
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, value == 0);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, false);
+		cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
+		cpu.setFlag(Z80Cpu.FLAG_SUBSTRACT, false);
 		return value;
 	}
 
 	public void dec(Register register) {
+		dec(register, true);
+	}
+
+	public void dec(Register register, boolean alterFlags) {
 		register.setValue(register.getValue() - 1);
+		if (alterFlags) {
+			cpu.setFlag(Z80Cpu.FLAG_ZERO, register.getValue() == 0);
+			cpu.setFlag(Z80Cpu.FLAG_SUBSTRACT, true);
+		}
 	}
 }
