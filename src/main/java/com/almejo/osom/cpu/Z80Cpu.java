@@ -3,15 +3,25 @@ package com.almejo.osom.cpu;
 import com.almejo.osom.memory.MMU;
 import lombok.Setter;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Z80Cpu {
+
+	private static final int OPCODE_JP = 0xc3;
+	private static final int OPCODE_XOR_A = 0xaf;
+	private static final int OPCODE_LD_HL_NN = 0x21;
+	private static final int OPCODE_LD_C_N = 0xe;
+	private static final int OPCODE_LD_B_N = 0x6;
 
 	@Setter
 	private MMU mmu;
 
-	private Register AF = new Register();
-	private Register BC = new Register();
-	private Register DE = new Register();
-	private Register HL = new Register();
+	private List<Register> registers = new LinkedList<>();
+	private Register AF = new Register("AF");
+	private Register BC = new Register("BC");
+	private Register DE = new Register("DC");
+	private Register HL = new Register("HL");
 
 	private static byte FLAG_Z = 7;
 	private static byte FLAG_N = 6;
@@ -19,8 +29,14 @@ public class Z80Cpu {
 	private static byte FLAG_C = 4;
 
 	private int programCounter;
-	private Register stackPointer = new Register();
+	private Register stackPointer = new Register("SP");
 
+	public Z80Cpu() {
+		registers.add(AF);
+		registers.add(BC);
+		registers.add(DE);
+		registers.add(HL);
+	}
 
 	public void reset() {
 		programCounter = 0x100;
@@ -63,31 +79,82 @@ public class Z80Cpu {
 		mmu.setByte(0xFFFF, 0x00);
 	}
 
-	public void execute(int cycles) {
+	public void execute() {
 		int operationCode = mmu.getByte(programCounter);
 		programCounter++;
-		System.out.println(Integer.toHexString(operationCode));
 		switch (operationCode) {
 			case 0x0:
-				return;
-			case 0xc3:
-				executeC3();
-				return;
-			case 0xaf:
-				executeAX(AF);
-				return;
+				break;
+			case OPCODE_JP:
+				executeJP();
+				break;
+			case OPCODE_XOR_A:
+				executeXOR_A(AF.getHi());
+				break;
+			case OPCODE_LD_HL_NN:
+				executeLD_N_nn(HL);
+				break;
+			case OPCODE_LD_C_N:
+				executeLD_LO_N(BC);
+				break;
+			case OPCODE_LD_B_N:
+				executeLD_HI_N(BC);
+				break;
 			default:
 				throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode));
 		}
+		printRegisters();
 	}
 
-	private void executeAX(Register register) {
-		register.setHi(register.getHi() ^ register.getLo());
+	private void executeLD_HI_N(Register register) {
+		System.out.println("LD " + register.getName().charAt(0) + ", 0x" + Integer.toHexString(mmu.getByte(programCounter)));
+		register.setHi(mmu.getByte(programCounter));
+		programCounter++;
 	}
 
-	private void executeC3() {
-		int value = mmu.getByte(programCounter + 1) << 8 | mmu.getByte(programCounter);
-		System.out.println("jp " + Integer.toOctalString(value));
+	private void executeLD_LO_N(Register register) {
+		System.out.println("LD " + register.getName().charAt(1) + ", 0x" + Integer.toHexString(mmu.getByte(programCounter)));
+		register.setLo(mmu.getByte(programCounter));
+		programCounter++;
+	}
+
+	private void printRegisters() {
+		StringBuilder builder = new StringBuilder();
+		registers.forEach(register -> builder.append(register.toString()).append(" "));
+		System.out.println(builder
+				.append("PC=").append(Integer.toHexString(programCounter))
+				.append("(")
+				.append(Integer.toHexString(programCounter))
+				.append(")").toString());
+	}
+
+	private void executeLD_N_nn(Register register) {
+		int value = mmu.getWord(programCounter);
+		System.out.println("LD " + register.getName() + ", 0x" + Integer.toHexString(value));
+		programCounter++;
+		programCounter++;
+	}
+
+	private void executeXOR_A(int value) {
+		System.out.println("XOR A");
+		AF.setHi(AF.getHi() ^ value);
+		setFlag(FLAG_Z, AF.getHi() == 0);
+		setFlag(FLAG_H, false);
+		setFlag(FLAG_C, false);
+		setFlag(FLAG_N, false);
+	}
+
+	private void setFlag(byte flag, boolean set) {
+		if (set) {
+			AF.setLo(AF.getLo() | 1 << flag);
+		} else {
+			AF.setLo(AF.getLo() & ~(1 << flag));
+		}
+	}
+
+	private void executeJP() {
+		int value = mmu.getWord(programCounter);
+		System.out.println("jp " + Integer.toHexString(value));
 		programCounter = value;
 	}
 }

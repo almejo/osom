@@ -19,4 +19,8 @@ public class MMU {
 		}
 		return memory[address];
 	}
+
+	public int getWord(int address) {
+		return getByte(address + 1) << 8 | getByte(address);
+	}
 }

@@ -27,7 +27,7 @@ public class Emulator {
 		cpu.reset();
 
 		while (true) {
-			cpu.execute(CYCLES);
+			cpu.execute();
 		}
 	}
 }
