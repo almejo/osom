@@ -11,11 +11,14 @@ public class Z80Cpu {
 	private static final int OPCODE_JP = 0xc3;
 	private static final int OPCODE_XOR_A = 0xaf;
 	private static final int OPCODE_LD_HL_NN = 0x21;
+	private static final int OPCODE_LDD_HL_A = 0x32;
 	private static final int OPCODE_LD_C_N = 0xe;
 	private static final int OPCODE_LD_B_N = 0x6;
 
 	@Setter
 	private MMU mmu;
+
+	private final ALU alu;
 
 	private List<Register> registers = new LinkedList<>();
 	private Register AF = new Register("AF");
@@ -23,10 +26,10 @@ public class Z80Cpu {
 	private Register DE = new Register("DC");
 	private Register HL = new Register("HL");
 
-	private static byte FLAG_Z = 7;
-	private static byte FLAG_N = 6;
-	private static byte FLAG_H = 5;
-	private static byte FLAG_C = 4;
+	static byte FLAG_Z = 7;
+	static byte FLAG_N = 6;
+	static byte FLAG_H = 5;
+	static byte FLAG_C = 4;
 
 	private int programCounter;
 	private Register stackPointer = new Register("SP");
@@ -36,6 +39,7 @@ public class Z80Cpu {
 		registers.add(BC);
 		registers.add(DE);
 		registers.add(HL);
+		alu = new ALU(this);
 	}
 
 	public void reset() {
@@ -94,11 +98,14 @@ public class Z80Cpu {
 			case OPCODE_LD_HL_NN:
 				executeLD_N_nn(HL);
 				break;
+			case OPCODE_LDD_HL_A:
+				executeLDD_HL_A();
+				break;
 			case OPCODE_LD_C_N:
-				executeLD_LO_N(BC);
+				executeLD_LO_n(BC);
 				break;
 			case OPCODE_LD_B_N:
-				executeLD_HI_N(BC);
+				executeLD_HI_n(BC);
 				break;
 			default:
 				throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode));
@@ -106,13 +113,19 @@ public class Z80Cpu {
 		printRegisters();
 	}
 
-	private void executeLD_HI_N(Register register) {
+	private void executeLDD_HL_A() {
+		mmu.setByte(HL.getValue(), AF.getHi());
+		System.out.println("LDD [" + HL.getName() + "], " + AF.getName().charAt(0) + "; " + Integer.toHexString(mmu.getByte(HL.getValue())));
+		alu.dec(HL);
+	}
+
+	private void executeLD_HI_n(Register register) {
 		System.out.println("LD " + register.getName().charAt(0) + ", 0x" + Integer.toHexString(mmu.getByte(programCounter)));
 		register.setHi(mmu.getByte(programCounter));
 		programCounter++;
 	}
 
-	private void executeLD_LO_N(Register register) {
+	private void executeLD_LO_n(Register register) {
 		System.out.println("LD " + register.getName().charAt(1) + ", 0x" + Integer.toHexString(mmu.getByte(programCounter)));
 		register.setLo(mmu.getByte(programCounter));
 		programCounter++;
@@ -137,14 +150,10 @@ public class Z80Cpu {
 
 	private void executeXOR_A(int value) {
 		System.out.println("XOR A");
-		AF.setHi(AF.getHi() ^ value);
-		setFlag(FLAG_Z, AF.getHi() == 0);
-		setFlag(FLAG_H, false);
-		setFlag(FLAG_C, false);
-		setFlag(FLAG_N, false);
+		AF.setHi(alu.xor(AF.getHi(), value));
 	}
 
-	private void setFlag(byte flag, boolean set) {
+	void setFlag(byte flag, boolean set) {
 		if (set) {
 			AF.setLo(AF.getLo() | 1 << flag);
 		} else {
