@@ -4,8 +4,6 @@ import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.memory.Cartridge;
 import com.almejo.osom.memory.MMU;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,8 +17,7 @@ public class Emulator {
 		MMU mmu = new MMU();
 		Cartridge cartridge = new Cartridge(bytes);
 		mmu.addCartridge(cartridge);
-		Z80Cpu cpu = new Z80Cpu();
-		cpu.setMmu(mmu);
+		Z80Cpu cpu = new Z80Cpu(mmu);
 		cpu.reset();
 
 //		JTextArea textArea = new JTextArea();

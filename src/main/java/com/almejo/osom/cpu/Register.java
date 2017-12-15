@@ -25,6 +25,10 @@ class Register {
 
 	@Override
 	public String toString() {
-		return this.name+"=0x"+ Integer.toHexString(this.getValue()) + " (b" + Integer.toBinaryString(this.getHi()) + " " + Integer.toBinaryString(this.getLo()) + ")";
+		return this.name + "=0x" + Integer.toHexString(this.getValue()) + " (b" + Integer.toBinaryString(this.getHi()) + " " + Integer.toBinaryString(this.getLo()) + ")";
+	}
+
+	public void inc(int value) {
+		setValue(getValue() + value);
 	}
 }
