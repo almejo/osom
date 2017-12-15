@@ -34,6 +34,15 @@ public class ALU {
 		}
 	}
 
+	void cpHI(Register register, int n) {
+		throw new RuntimeException("not implemented");
+//			int oldValue = register.getHi();
+//			cpu.setFlag(Z80Cpu.FLAG_ZERO, oldValue == 1);
+//			cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
+//			cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, oldValue == 0);
+//			cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
+	}
+
 	private void updateDecFlags(int oldValue) {
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, oldValue == 1);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);

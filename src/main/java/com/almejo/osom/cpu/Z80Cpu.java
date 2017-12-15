@@ -52,6 +52,7 @@ public class Z80Cpu {
 		addOpcode(new OperationDI(this, this.mmu));
 		addOpcode(new OperationLDH_n_A(this, this.mmu));
 		addOpcode(new OperationLDH_A_n(this, this.mmu));
+		addOpcode(new OperationCP_n(this, this.mmu));
 	}
 
 	private void addOpcode(Operation operation) {
