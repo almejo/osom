@@ -2,14 +2,30 @@ package com.almejo.osom.memory;
 
 public class Cartridge {
 	private int[] bytes;
+	private String title;
 
 	public Cartridge(byte[] bytes) {
-		this.bytes = new int[bytes.length];
+		this.bytes = getBytes(bytes);
+		title = parseTitle();
+		System.out.println("Title: "+ title);
+	}
+
+	private int[] getBytes(byte[] bytes) {
+		int []array = new int[bytes.length];
 		int index = 0;
 		for (byte b : bytes) {
-			this.bytes[index] = b < 0 ? 256 + b : b;
+			array[index] = b < 0 ? 256 + b : b;
 			index++;
 		}
+		return array;
+	}
+
+	private String parseTitle() {
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < 16; i++) {
+			builder.append(this.bytes[0x134 + i] >= 0 ? "" + (char) (32 + this.bytes[0x134 + i]) : " ");
+		}
+		return builder.toString();
 	}
 
 	int getByte(int address) {
