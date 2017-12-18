@@ -5,20 +5,12 @@ public class Cartridge {
 	private String title;
 
 	public Cartridge(byte[] bytes) {
-		this.bytes = getBytes(bytes);
+		this.bytes = ByteUtils.getBytes(bytes);
 		title = parseTitle();
 		System.out.println("Title: "+ title);
 	}
 
-	private int[] getBytes(byte[] bytes) {
-		int []array = new int[bytes.length];
-		int index = 0;
-		for (byte b : bytes) {
-			array[index] = b < 0 ? 256 + b : b;
-			index++;
-		}
-		return array;
-	}
+
 
 	private String parseTitle() {
 		StringBuilder builder = new StringBuilder();

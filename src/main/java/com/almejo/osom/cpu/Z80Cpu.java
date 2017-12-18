@@ -28,7 +28,7 @@ public class Z80Cpu {
 	static byte FLAG_CARRY = 4;
 
 	Register PC = new Register("HL");
-	private Register stackPointer = new Register("SP");
+	Register SP = new Register("SP");
 
 	public Z80Cpu(MMU mmu) {
 		this.mmu = mmu;
@@ -43,6 +43,7 @@ public class Z80Cpu {
 		addOpcode(new OperationXOR_A(this, this.mmu));
 		addOpcode(new OperationLD_HL_nn(this, this.mmu));
 		addOpcode(new OperationLDD_HL_A(this, this.mmu));
+		addOpcode(new OperationLD_SP_nn(this, this.mmu));
 		addOpcode(new OperationLD_C_n(this, this.mmu));
 		addOpcode(new OperationLD_B_n(this, this.mmu));
 		addOpcode(new OperationLD_A_n(this, this.mmu));
@@ -60,8 +61,9 @@ public class Z80Cpu {
 	}
 
 	public void reset() {
-		PC.setValue(0x100);
-		stackPointer.setValue(0xFFFE);
+		// PC.setValue(0x100);
+		PC.setValue(0x0);
+		SP.setValue(0xFFFE);
 
 		AF.setValue(0x01B0);
 		BC.setValue(0x0013);
