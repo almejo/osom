@@ -1,14 +1,41 @@
 package com.almejo.osom;
 
+import com.almejo.osom.cpu.Z80Cpu;
+import com.almejo.osom.memory.Cartridge;
+import com.almejo.osom.memory.MMU;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class Emulator {
 
-	private static final int CYCLES = 10;
-	private DataBus bus = new DataBus();
-	private Z80Cpu cpu = new Z80Cpu(bus);
+	public void run(String file) throws IOException {
+		Path path = Paths.get(file);
+		byte[] bytes = Files.readAllBytes(path);
+		MMU mmu = new MMU();
+		Cartridge cartridge = new Cartridge(bytes);
+		mmu.addCartridge(cartridge);
+		Z80Cpu cpu = new Z80Cpu(mmu);
+		cpu.reset();
 
-	public void run() {
+//		JTextArea textArea = new JTextArea();
+//		textArea.setText(cartridge.toString());
+//		textArea.setFont(new Font("monospaced", Font.PLAIN, 12));
+//
+//		JFrame frame = new JFrame();
+//		frame.getContentPane().add(new JScrollPane(textArea));
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.pack();
+//		frame.setVisible(true);
+
+		//noinspection InfiniteLoopStatement
+		int i = 0;
 		while (true) {
-			cpu.execute(CYCLES);
+			System.out.print(i + "--> ");
+			cpu.execute();
+			i++;
 		}
 	}
 }
