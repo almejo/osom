@@ -17,12 +17,10 @@ public class ALU {
 	}
 
 	public void dec(Register register, boolean alterFlags) {
+		int oldValue = register.getValue();
 		register.setValue(register.getValue() - 1);
 		if (alterFlags) {
-			cpu.setFlag(Z80Cpu.FLAG_ZERO, register.getValue() == 0);
-			cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
-			cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, true);
-			cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
+			updateDecFlags(oldValue, 1);
 		}
 	}
 
@@ -30,31 +28,27 @@ public class ALU {
 		int oldValue = register.getHi();
 		register.setHi(oldValue == 0 ? 0xff : oldValue - 1);
 		if (alterFlags) {
-			updateDecFlags(oldValue);
+			updateDecFlags(oldValue, 1);
 		}
-	}
-
-	void cpHI(Register register, int n) {
-		throw new RuntimeException("not implemented");
-//			int oldValue = register.getHi();
-//			cpu.setFlag(Z80Cpu.FLAG_ZERO, oldValue == 1);
-//			cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
-//			cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, oldValue == 0);
-//			cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
-	}
-
-	private void updateDecFlags(int oldValue) {
-		cpu.setFlag(Z80Cpu.FLAG_ZERO, oldValue == 1);
-		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
-		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, oldValue == 0);
-		cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
 	}
 
 	void decLO(Register register, boolean alterFlags) {
 		int oldValue = register.getLo();
 		register.setLo(oldValue == 0 ? 0xff : oldValue - 1);
 		if (alterFlags) {
-			updateDecFlags(oldValue);
+			updateDecFlags(oldValue, 1);
 		}
+	}
+
+	void cpHI(Register register, int n) {
+		int value = register.getHi();
+		updateDecFlags(value, n);
+	}
+
+	private void updateDecFlags(int value, int n) {
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value - n) & 0xff) == 0);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
+		cpu.setFlag(Z80Cpu.FLAG_CARRY, value < n);
 	}
 }

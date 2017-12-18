@@ -31,8 +31,11 @@ public class Emulator {
 //		frame.setVisible(true);
 
 		//noinspection InfiniteLoopStatement
+		int i = 0;
 		while (true) {
+			System.out.print(i + "--> ");
 			cpu.execute();
+			i++;
 		}
 	}
 }
