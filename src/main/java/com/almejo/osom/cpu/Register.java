@@ -31,4 +31,8 @@ class Register {
 	public void inc(int value) {
 		setValue(getValue() + value);
 	}
+
+	public String getName(boolean lo) {
+		return "" + (lo ? getName().charAt(1): getName().charAt(0));
+	}
 }

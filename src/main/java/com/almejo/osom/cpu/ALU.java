@@ -51,4 +51,10 @@ public class ALU {
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, value < n);
 	}
+
+	public void setBIT(boolean equalsZero) {
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, equalsZero);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, true);
+	}
 }

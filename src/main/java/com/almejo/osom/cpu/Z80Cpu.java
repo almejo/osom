@@ -9,7 +9,11 @@ import java.util.List;
 
 public class Z80Cpu {
 
+	private static int PREFIX_CB = 0xcb;
+
 	private HashMap<Integer, Operation> operations = new HashMap<>();
+
+	private HashMap<Integer, Operation> operationsCB = new HashMap<>();
 
 	@Setter
 	private MMU mmu;
@@ -54,9 +58,12 @@ public class Z80Cpu {
 		addOpcode(new OperationLDH_n_A(this, this.mmu));
 		addOpcode(new OperationLDH_A_n(this, this.mmu));
 		addOpcode(new OperationCP_n(this, this.mmu));
+		addOpcode(new OperationBIT_7_H(this, this.mmu));
+		addOpcode(new OperationLDH_C_A(this, this.mmu));
 	}
 
 	private void addOpcode(Operation operation) {
+
 		operations.put(operation.code, operation);
 	}
 
@@ -103,16 +110,25 @@ public class Z80Cpu {
 	}
 
 	public void execute() {
+		boolean prefixedOpCode = false;
 		int operationCode = mmu.getByte(PC.getValue());
+		if (operationCode == PREFIX_CB) {
+			System.out.print("0xcb-");
+			PC.inc(1);
+			operationCode = mmu.getByte(PC.getValue());
+			prefixedOpCode = true;
+		}
 		if (operations.containsKey(operationCode)) {
 			Operation operation = operations.get(operationCode);
+			System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
+			System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
 			int oldPC = PC.getValue();
 			operation.execute();
 			if (PC.getValue() == oldPC) {
 				PC.inc(operation.getLength());
 			}
 		} else {
-			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode));
+			throw new RuntimeException("code not found " + (prefixedOpCode ? "0xcb" : "") + "0x" + Integer.toHexString(operationCode));
 		}
 		printRegisters();
 	}
