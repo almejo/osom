@@ -5,12 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class MMU {
-	private boolean booting = true;
+	private boolean useBios = true;
 	private int[] memory = new int[0x10000];
 	private int[] bios;
 	private Cartridge cartridge;
 
-	public MMU() throws IOException {
+	public MMU(boolean useBios) throws IOException {
+		this.useBios = useBios;
 		bios = ByteUtils.getBytes(Files.readAllBytes(Paths.get("bios/bios.bin")));
 	}
 
@@ -24,9 +25,9 @@ public class MMU {
 
 	public int getByte(int address) {
 		if (address >= 0 && address <= 0x7fff) {
-			if (booting && address <= 0x100) {
+			if (useBios && address <= 0x100) {
 				if (address == 0x100) {
-					booting = false;
+					useBios = false;
 				}
 				return bios[address];
 			}

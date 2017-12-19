@@ -17,8 +17,8 @@ class Register {
 	}
 
 	void setValue(int value) {
-		setLo(value & 0x00ff);
 		setHi((value & 0xff00) >> 8);
+		setLo(value & 0x00ff);
 	}
 
 	public void setLo(int value) {
@@ -26,7 +26,7 @@ class Register {
 	}
 
 	public void setHi(int value) {
-		this.hi = (value & 0xff00) >> 8;
+		this.hi = value & 0x00ff;
 	}
 
 	int getValue() {

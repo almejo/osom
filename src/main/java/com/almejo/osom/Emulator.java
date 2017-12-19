@@ -11,14 +11,14 @@ import java.nio.file.Paths;
 
 public class Emulator {
 
-	public void run(String file) throws IOException {
+	public void run(boolean bootBios, String file) throws IOException {
 		Path path = Paths.get(file);
 		byte[] bytes = Files.readAllBytes(path);
-		MMU mmu = new MMU();
+		MMU mmu = new MMU(bootBios);
 		Cartridge cartridge = new Cartridge(bytes);
 		mmu.addCartridge(cartridge);
 		Z80Cpu cpu = new Z80Cpu(mmu);
-		cpu.reset();
+		cpu.reset(bootBios);
 
 //		JTextArea textArea = new JTextArea();
 //		textArea.setText(cartridge.toString());
