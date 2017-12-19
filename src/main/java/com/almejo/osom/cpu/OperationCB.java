@@ -5,7 +5,7 @@ import com.almejo.osom.memory.MMU;
 
 abstract class OperationCB extends Operation {
 
-	OperationCB(Z80Cpu cpu, MMU mmu, int code, int length) {
-		super(cpu, mmu, code, length);
+	OperationCB(Z80Cpu cpu, MMU mmu, int m, int t, int code, int length) {
+		super(cpu, mmu, m, t, code, length);
 	}
 }

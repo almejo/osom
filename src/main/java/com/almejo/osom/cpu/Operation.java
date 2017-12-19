@@ -14,9 +14,15 @@ public abstract class Operation {
 	@Getter
 	private int length;
 
-	Operation(Z80Cpu cpu, MMU mmu, int code, int length) {
+	@Getter
+	private int t;
+	private int m;
+
+	Operation(Z80Cpu cpu, MMU mmu, int m, int t, int code, int length) {
 		this.cpu = cpu;
 		this.mmu = mmu;
+		this.t = t;
+		this.m = m;
 		this.code = code;
 		this.length = length;
 	}

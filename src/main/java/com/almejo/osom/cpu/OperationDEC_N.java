@@ -6,8 +6,8 @@ class OperationDEC_N extends Operation {
 	private Register register;
 	private boolean lo;
 
-	OperationDEC_N(Z80Cpu cpu, MMU mmu, int code, Register register, boolean lo) {
-		super(cpu, mmu, code, 1);
+	OperationDEC_N(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
+		super(cpu, mmu, m, t, code, 1);
 		this.register = register;
 		this.lo = lo;
 	}

@@ -5,7 +5,7 @@ import com.almejo.osom.memory.MMU;
 class OperationNOOP extends Operation {
 
 	OperationNOOP(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 0x0, 1);
+		super(cpu, mmu, 1, 4, 0x0, 1);
 	}
 
 	@Override

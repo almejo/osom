@@ -8,8 +8,8 @@ class OperationBIT_b_n_8b extends OperationCB {
 	private int b;
 	private boolean lo;
 
-	OperationBIT_b_n_8b(Z80Cpu cpu, MMU mmu, int code, int length, Register register, int b, boolean lo) {
-		super(cpu, mmu, code, length);
+	OperationBIT_b_n_8b(Z80Cpu cpu, MMU mmu, int m, int t, int code, int length, Register register, int b, boolean lo) {
+		super(cpu, mmu, m, t, code, length);
 		this.register = register;
 		this.b = b;
 		this.lo = lo;

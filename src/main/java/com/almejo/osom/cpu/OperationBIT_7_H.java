@@ -5,7 +5,7 @@ import com.almejo.osom.memory.MMU;
 class OperationBIT_7_H extends OperationBIT_b_n_8b {
 
 	OperationBIT_7_H(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 0x7c, 1, cpu.HL, 7, false);
+		super(cpu, mmu, 2, 8, 0x7c, 1, cpu.HL, 7, false);
 	}
 
 }
