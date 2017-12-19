@@ -1,13 +1,15 @@
 package com.almejo.osom.cpu;
 
 import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 class Register {
+	@Getter
 	private String name;
+
+	@Getter
 	private int lo;
+
+	@Getter
 	private int hi;
 
 	Register(String name) {
@@ -17,6 +19,14 @@ class Register {
 	void setValue(int value) {
 		setLo(value & 0x00ff);
 		setHi((value & 0xff00) >> 8);
+	}
+
+	public void setLo(int value) {
+		this.lo = value & 0x00ff;
+	}
+
+	public void setHi(int value) {
+		this.hi = (value & 0xff00) >> 8;
 	}
 
 	int getValue() {
@@ -33,6 +43,6 @@ class Register {
 	}
 
 	public String getName(boolean lo) {
-		return "" + (lo ? getName().charAt(1): getName().charAt(0));
+		return "" + (lo ? getName().charAt(1) : getName().charAt(0));
 	}
 }

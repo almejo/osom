@@ -40,9 +40,30 @@ public class ALU {
 		}
 	}
 
+	void incLO(Register register, boolean alterFlags) {
+		int oldValue = register.getLo();
+		register.setLo(0xff & oldValue + 1);
+		if (alterFlags) {
+			updateIncFlags(oldValue, 1);
+		}
+	}
+	void incHI(Register register, boolean alterFlags) {
+		int oldValue = register.getHi();
+		register.setHi(0xff & oldValue + 1);
+		if (alterFlags) {
+			updateIncFlags(oldValue, 1);
+		}
+	}
+
 	void cpHI(Register register, int n) {
 		int value = register.getHi();
 		updateDecFlags(value, n);
+	}
+
+	private void updateIncFlags(int value, int n) {
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value + n) & 0xff) == 0);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
 	}
 
 	private void updateDecFlags(int value, int n) {

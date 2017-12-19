@@ -23,7 +23,7 @@ public class Z80Cpu {
 	private List<Register> registers = new LinkedList<>();
 	Register AF = new Register("AF");
 	Register BC = new Register("BC");
-	private Register DE = new Register("DE");
+	Register DE = new Register("DE");
 	Register HL = new Register("HL");
 
 	static byte FLAG_ZERO = 7;
@@ -48,9 +48,9 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_HL_nn(this, this.mmu));
 		addOpcode(new OperationLDD_HL_A(this, this.mmu));
 		addOpcode(new OperationLD_SP_nn(this, this.mmu));
-		addOpcode(new OperationLD_C_n(this, this.mmu));
-		addOpcode(new OperationLD_B_n(this, this.mmu));
-		addOpcode(new OperationLD_A_n(this, this.mmu));
+		addOpcode(new OperationLD_C_n8b(this, this.mmu));
+		addOpcode(new OperationLD_B_n8b(this, this.mmu));
+		addOpcode(new OperationLD_A_n8b(this, this.mmu));
 		addOpcode(new OperationDEC_B(this, this.mmu));
 		addOpcode(new OperationDEC_C(this, this.mmu));
 		addOpcode(new OperationJR_NZ_n(this, this.mmu));
@@ -60,10 +60,18 @@ public class Z80Cpu {
 		addOpcode(new OperationCP_n(this, this.mmu));
 		addOpcode(new OperationBIT_7_H(this, this.mmu));
 		addOpcode(new OperationLDH_C_A(this, this.mmu));
+		addOpcode(new OperationINC_C(this, this.mmu));
+		addOpcode(new OperationLD_HL_A(this, this.mmu));
+
+		addOpcode(new OperationLD_DE_nn(this, this.mmu));
+		addOpcode(new OperationLD_A_DE(this, this.mmu));
 	}
 
 	private void addOpcode(Operation operation) {
-
+		if (operation instanceof OperationCB) {
+			operationsCB.put(operation.code, operation);
+			return;
+		}
 		operations.put(operation.code, operation);
 	}
 
@@ -111,24 +119,28 @@ public class Z80Cpu {
 
 	public void execute() {
 		boolean prefixedOpCode = false;
+		Operation operation;
 		int operationCode = mmu.getByte(PC.getValue());
 		if (operationCode == PREFIX_CB) {
 			System.out.print("0xcb-");
 			PC.inc(1);
 			operationCode = mmu.getByte(PC.getValue());
-			prefixedOpCode = true;
-		}
-		if (operations.containsKey(operationCode)) {
-			Operation operation = operations.get(operationCode);
-			System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
-			System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
-			int oldPC = PC.getValue();
-			operation.execute();
-			if (PC.getValue() == oldPC) {
-				PC.inc(operation.getLength());
+			if (operationsCB.containsKey(operationCode)) {
+				operation = operationsCB.get(operationCode);
+			} else {
+				throw new RuntimeException("code not found 0xcb 0x" + Integer.toHexString(operationCode));
 			}
+		} else if (operations.containsKey(operationCode)) {
+			operation = operations.get(operationCode);
 		} else {
 			throw new RuntimeException("code not found " + (prefixedOpCode ? "0xcb" : "") + "0x" + Integer.toHexString(operationCode));
+		}
+		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
+		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
+		int oldPC = PC.getValue();
+		operation.execute();
+		if (PC.getValue() == oldPC) {
+			PC.inc(operation.getLength());
 		}
 		printRegisters();
 	}
