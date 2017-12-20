@@ -15,8 +15,8 @@ public abstract class Operation {
 	private int length;
 
 	@Getter
-	private int t;
-	private int m;
+	protected int t;
+	protected int m;
 
 	Operation(Z80Cpu cpu, MMU mmu, int m, int t, int code, int length) {
 		this.cpu = cpu;
@@ -26,6 +26,8 @@ public abstract class Operation {
 		this.code = code;
 		this.length = length;
 	}
-
+	void update(Clock clock) {
+		clock.update(m, t);
+	}
 	abstract void execute();
 }

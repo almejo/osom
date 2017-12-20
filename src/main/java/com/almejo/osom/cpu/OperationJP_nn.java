@@ -2,10 +2,10 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 
-class OperationJP extends Operation {
+class OperationJP_nn extends Operation {
 
-	OperationJP(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 0xc3, 1);
+	OperationJP_nn(Z80Cpu cpu, MMU mmu) {
+		super(cpu, mmu, 3, 16, 0xc3, 1);
 	}
 
 	@Override

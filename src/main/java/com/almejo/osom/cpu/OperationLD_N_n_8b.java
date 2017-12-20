@@ -7,9 +7,9 @@ class OperationLD_N_n_8b extends Operation {
 	private final boolean lo;
 	private Register register;
 
-	OperationLD_N_n_8b(Z80Cpu cpu, MMU mmu, int code, Register register, boolean lo) {
+	OperationLD_N_n_8b(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
 
-		super(cpu, mmu, code, 2);
+		super(cpu, mmu, m, t, code, 2);
 		this.lo = lo;
 		this.register = register;
 	}

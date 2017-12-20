@@ -5,7 +5,7 @@ import com.almejo.osom.memory.MMU;
 class OperationLD_A_DE extends Operation {
 
 	OperationLD_A_DE(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 0x1a, 1);
+		super(cpu, mmu, 1, 8, 0x1a, 1);
 	}
 
 	@Override

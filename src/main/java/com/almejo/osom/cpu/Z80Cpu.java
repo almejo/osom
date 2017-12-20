@@ -33,6 +33,7 @@ public class Z80Cpu {
 
 	Register PC = new Register("PC");
 	Register SP = new Register("SP");
+	private Clock clock = new Clock();
 
 	public Z80Cpu(MMU mmu) {
 		this.mmu = mmu;
@@ -40,10 +41,12 @@ public class Z80Cpu {
 		registers.add(BC);
 		registers.add(DE);
 		registers.add(HL);
+		registers.add(PC);
+		registers.add(SP);
 		alu = new ALU(this);
 
 		addOpcode(new OperationNOOP(this, this.mmu));
-		addOpcode(new OperationJP(this, this.mmu));
+		addOpcode(new OperationJP_nn(this, this.mmu));
 		addOpcode(new OperationXOR_A(this, this.mmu));
 		addOpcode(new OperationLD_HL_nn(this, this.mmu));
 		addOpcode(new OperationLDD_HL_A(this, this.mmu));
@@ -76,8 +79,8 @@ public class Z80Cpu {
 	}
 
 	public void reset(boolean bootBios) {
-		//PC.setValue(bootBios ? 0x0 :0x100);
-		PC.setValue(0x0100);
+		PC.setValue(bootBios ? 0x0 :0x100);
+		// PC.setValue(0x0100);
 		SP.setValue(0xFFFE);
 		AF.setValue(0x01B0);
 		BC.setValue(0x0013);
@@ -107,20 +110,18 @@ public class Z80Cpu {
 		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
 		int oldPC = PC.getValue();
 		operation.execute();
+		operation.update(clock);
 		if (PC.getValue() == oldPC) {
 			PC.inc(operation.getLength());
 		}
-		printRegisters();
+		printState();
 	}
 
-	private void printRegisters() {
+	private void printState() {
 		StringBuilder builder = new StringBuilder();
 		registers.forEach(register -> builder.append(register.toString()).append(" "));
 		System.out.println(builder
-				.append("PC=").append(Integer.toHexString(PC.getValue()))
-				.append("(")
-				.append(Integer.toHexString(PC.getValue()))
-				.append(")").toString());
+				.append(" ").append(clock).toString());
 	}
 
 

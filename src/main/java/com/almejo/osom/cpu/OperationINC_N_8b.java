@@ -7,8 +7,8 @@ class OperationINC_N_8b extends OperationDEC_N {
 	private Register register;
 	private boolean lo;
 
-	OperationINC_N_8b(Z80Cpu cpu, MMU mmu, int code, Register register, boolean lo) {
-		super(cpu, mmu, code, cpu.BC, true);
+	OperationINC_N_8b(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
+		super(cpu, mmu, m, t, code, cpu.BC, true);
 		this.register = register;
 		this.lo = lo;
 	}
