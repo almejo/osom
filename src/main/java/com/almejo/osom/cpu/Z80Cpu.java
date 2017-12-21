@@ -80,7 +80,6 @@ public class Z80Cpu {
 
 	public void reset(boolean bootBios) {
 		PC.setValue(bootBios ? 0x0 :0x100);
-		// PC.setValue(0x0100);
 		SP.setValue(0xFFFE);
 		AF.setValue(0x01B0);
 		BC.setValue(0x0013);
