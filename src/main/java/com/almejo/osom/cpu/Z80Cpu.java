@@ -33,7 +33,7 @@ public class Z80Cpu {
 
 	Register PC = new Register("PC");
 	Register SP = new Register("SP");
-	private Clock clock = new Clock();
+	public Clock clock = new Clock();
 
 	public Z80Cpu(MMU mmu) {
 		this.mmu = mmu;

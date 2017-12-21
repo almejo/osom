@@ -1,6 +1,7 @@
 package com.almejo.osom;
 
 import com.almejo.osom.cpu.Z80Cpu;
+import com.almejo.osom.gpu.GPU;
 import com.almejo.osom.memory.Cartridge;
 import com.almejo.osom.memory.MMU;
 
@@ -13,12 +14,14 @@ public class Emulator {
 
 	public void run(boolean bootBios, String file) throws IOException {
 		Path path = Paths.get(file);
+		GPU gpu = new GPU();
 		byte[] bytes = Files.readAllBytes(path);
-		MMU mmu = new MMU(bootBios);
+		MMU mmu = new MMU(bootBios, gpu);
 		Cartridge cartridge = new Cartridge(bytes);
 		mmu.addCartridge(cartridge);
 		Z80Cpu cpu = new Z80Cpu(mmu);
 		cpu.reset(bootBios);
+
 
 //		JTextArea textArea = new JTextArea();
 //		textArea.setText(cartridge.toString());
@@ -34,7 +37,10 @@ public class Emulator {
 		int i = 0;
 		while (true) {
 			System.out.print(i + "--> ");
+			int oldCycles = cpu.clock.getT();
 			cpu.execute();
+			int cycles = cpu.clock.getT() - oldCycles;
+			gpu.update(cycles);
 			i++;
 		}
 	}

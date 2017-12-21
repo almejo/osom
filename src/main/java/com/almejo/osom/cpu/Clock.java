@@ -1,9 +1,6 @@
 package com.almejo.osom.cpu;
 
-import lombok.Getter;
-
-@Getter
-class Clock {
+public class Clock {
 
 	private int m;
 	private int t;
@@ -11,6 +8,10 @@ class Clock {
 	public void update(int m, int t) {
 		this.m += m;
 		this.t += t;
+	}
+
+	public int getT() {
+		return t;
 	}
 
 	@Override
