@@ -12,6 +12,7 @@ abstract class OperationConditional extends Operation {
 		this.actionTaken = false;
 	}
 
+	@Override
 	void update(Clock clock) {
 		clock.update(m, actionTaken ? t : t2);
 	}
