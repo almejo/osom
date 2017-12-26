@@ -8,7 +8,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Z80Cpu {
+	private static final int INTERRUPT_BIT_V_BLANK = 0;
+	private static final int INTERRUPT_BIT_LCD = 1;
+	private static final int INTERRUPT_BIT_TIMER = 2;
+	private static final int INTERRUPT_BIT_JOYPAD = 4;
 
+	private static int timerCounter = 1024; // Default. 4096 hz
+	private static int TIMER_ENABLED_BIT = 2;
+
+	private boolean interruptionsEnabled = false;
 	private static int PREFIX_CB = 0xcb;
 
 	private HashMap<Integer, Operation> operations = new HashMap<>();
@@ -133,7 +141,11 @@ public class Z80Cpu {
 	}
 
 	boolean isFlagSetted(byte flag) {
-		return (AF.getLo() & 1 << flag) > 0;
+		return isBitSetted(flag, AF.getLo());
+	}
+
+	private boolean isBitSetted(int flag, int value) {
+		return (value & 1 << flag) > 0;
 	}
 
 
@@ -169,5 +181,31 @@ public class Z80Cpu {
 		mmu.setByte(0xFF4A, 0x00);
 		mmu.setByte(0xFF4B, 0x00);
 		mmu.setByte(0xFFFF, 0x00);
+	}
+
+	public void setInterruptionsEnabled(boolean interruptionsEnabled) {
+		this.interruptionsEnabled = interruptionsEnabled;
+	}
+
+	public void updateTimers(int cycles) {
+		if (isClockEnabled()) {
+			timerCounter -= cycles;
+			if (timerCounter<0) {
+				if (mmu.getByte(MMU.TIMER_ADDRESS) == 255) {
+					mmu.setByte(MMU.TIMER_ADDRESS, mmu.getByte(MMU.TIMER_MODULATOR));
+					requestInterrupt(INTERRUPT_BIT_TIMER);
+				} else {
+					mmu.setByte(MMU.TIMER_ADDRESS, mmu.getByte(MMU.TIMER_ADDRESS) + 1);
+				}
+			}
+		}
+	}
+
+	private void requestInterrupt(int bit) {
+
+	}
+
+	private boolean isClockEnabled() {
+		return isBitSetted(mmu.getByte(MMU.TIMER_CONTROLLER), TIMER_ENABLED_BIT);
 	}
 }

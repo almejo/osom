@@ -32,14 +32,15 @@ public class Emulator {
 //		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		frame.pack();
 //		frame.setVisible(true);
-
-		//noinspection InfiniteLoopStatement
+		int cyclesPerSecond = 4194304;
 		int i = 0;
+		//noinspection InfiniteLoopStatement
 		while (true) {
 			System.out.print(i + "--> ");
 			int oldCycles = cpu.clock.getT();
 			cpu.execute();
 			int cycles = cpu.clock.getT() - oldCycles;
+			cpu.updateTimers(cycles);
 			gpu.update(cycles);
 			i++;
 		}

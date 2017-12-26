@@ -7,6 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class MMU {
+	public static int TIMER_ADDRESS = 0xFF05;
+	public static int TIMER_MODULATOR = 0xFF06;
+	public static int TIMER_CONTROLLER = 0xFF07;
+
 	private boolean useBios;
 	private GPU gpu;
 	private int[] ram = new int[0x1fff + 1];
