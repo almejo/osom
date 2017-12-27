@@ -25,6 +25,7 @@ public class Z80Cpu {
 
 	@Setter
 	private MMU mmu;
+	private int cyclesPerSecond;
 
 	final ALU alu;
 
@@ -42,9 +43,11 @@ public class Z80Cpu {
 	Register PC = new Register("PC");
 	Register SP = new Register("SP");
 	public Clock clock = new Clock();
+	private int dividerCounter;
 
-	public Z80Cpu(MMU mmu) {
+	public Z80Cpu(MMU mmu, int cycles) {
 		this.mmu = mmu;
+		cyclesPerSecond = cycles;
 		registers.add(AF);
 		registers.add(BC);
 		registers.add(DE);
@@ -87,7 +90,7 @@ public class Z80Cpu {
 	}
 
 	public void reset(boolean bootBios) {
-		PC.setValue(bootBios ? 0x0 :0x100);
+		PC.setValue(bootBios ? 0x0 : 0x100);
 		SP.setValue(0xFFFE);
 		AF.setValue(0x01B0);
 		BC.setValue(0x0013);
@@ -127,8 +130,7 @@ public class Z80Cpu {
 	private void printState() {
 		StringBuilder builder = new StringBuilder();
 		registers.forEach(register -> builder.append(register.toString()).append(" "));
-		System.out.println(builder
-				.append(" ").append(clock).toString());
+		System.out.println(builder.append(" ").append(clock).toString());
 	}
 
 
@@ -188,10 +190,23 @@ public class Z80Cpu {
 	}
 
 	public void updateTimers(int cycles) {
+		updateDividerRegister(cycles);
+		updateTimerRegister(cycles);
+	}
+
+	private void updateDividerRegister(int cycles) {
+		dividerCounter += cycles;
+		if (dividerCounter>= 255) {
+			dividerCounter = 0;
+			this.mmu.incrementDividerRegister();
+		}
+	}
+
+	private void updateTimerRegister(int cycles) {
 		if (isClockEnabled()) {
 			timerCounter -= cycles;
-			if (timerCounter<0) {
-				if (mmu.getByte(MMU.TIMER_ADDRESS) == 255) {
+			if (timerCounter < 0) {
+				if (timerIsAboutToOverflow()) {
 					mmu.setByte(MMU.TIMER_ADDRESS, mmu.getByte(MMU.TIMER_MODULATOR));
 					requestInterrupt(INTERRUPT_BIT_TIMER);
 				} else {
@@ -201,11 +216,36 @@ public class Z80Cpu {
 		}
 	}
 
+	private boolean timerIsAboutToOverflow() {
+		return mmu.getByte(MMU.TIMER_ADDRESS) == 255;
+	}
+
 	private void requestInterrupt(int bit) {
 
 	}
 
 	private boolean isClockEnabled() {
-		return isBitSetted(mmu.getByte(MMU.TIMER_CONTROLLER), TIMER_ENABLED_BIT);
+		return true;
+//		return isBitSetted(TIMER_ENABLED_BIT, mmu.getByte(MMU.TIMER_CONTROLLER));
+	}
+
+	public void updateTimerCounter(int value) {
+		System.out.println("timer updated!!!");
+		timerCounter = convertToTimerCycles(value);
+	}
+
+	private int convertToTimerCycles(int value) {
+		switch (value) {
+			case 0:
+				return this.cyclesPerSecond / 4096;
+			case 1:
+				return this.cyclesPerSecond / 262144;
+			case 2:
+				return this.cyclesPerSecond / 65536;
+			case 3:
+				return this.cyclesPerSecond / 16384;
+			default:
+				return this.cyclesPerSecond / 4096;
+		}
 	}
 }

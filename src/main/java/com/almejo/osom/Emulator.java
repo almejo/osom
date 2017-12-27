@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Emulator {
+	private static final int CYCLES = 4194304;
 
 	public void run(boolean bootBios, String file) throws IOException {
 		Path path = Paths.get(file);
@@ -19,8 +20,10 @@ public class Emulator {
 		MMU mmu = new MMU(bootBios, gpu);
 		Cartridge cartridge = new Cartridge(bytes);
 		mmu.addCartridge(cartridge);
-		Z80Cpu cpu = new Z80Cpu(mmu);
+		Z80Cpu cpu = new Z80Cpu(mmu, CYCLES);
+		mmu.setCpu(cpu);
 		cpu.reset(bootBios);
+
 
 
 //		JTextArea textArea = new JTextArea();
@@ -32,17 +35,14 @@ public class Emulator {
 //		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		frame.pack();
 //		frame.setVisible(true);
-		int cyclesPerSecond = 4194304;
-		int i = 0;
 		//noinspection InfiniteLoopStatement
 		while (true) {
-			System.out.print(i + "--> ");
 			int oldCycles = cpu.clock.getT();
+			System.out.print(cpu.clock.getT() + "--> ");
 			cpu.execute();
 			int cycles = cpu.clock.getT() - oldCycles;
 			cpu.updateTimers(cycles);
 			gpu.update(cycles);
-			i++;
 		}
 	}
 }

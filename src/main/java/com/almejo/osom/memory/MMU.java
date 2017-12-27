@@ -1,5 +1,6 @@
 package com.almejo.osom.memory;
 
+import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.gpu.GPU;
 
 import java.io.IOException;
@@ -7,13 +8,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class MMU {
+	private static final int DIVIDER_REGISTER_ADDRESS = 0xFF04;
 	public static int TIMER_ADDRESS = 0xFF05;
 	public static int TIMER_MODULATOR = 0xFF06;
 	public static int TIMER_CONTROLLER = 0xFF07;
 
 	private boolean useBios;
 	private GPU gpu;
-	private int[] ram = new int[0x1fff + 1];
+	private int[] ram = new int[0xffff];
 	private int[] video = new int[0x1fff + 1];
 	private int[] external = new int[0x1fff + 1];
 	private int[] sprites = new int[0x9F + 1];
@@ -21,6 +23,7 @@ public class MMU {
 	private int[] zero = new int[0x7f + 1];
 	private int[] bios;
 	private Cartridge cartridge;
+	private Z80Cpu cpu;
 
 
 	public void updatetile(int address) {
@@ -71,7 +74,27 @@ public class MMU {
 //			return; // io[address - 0xFF00] = value;
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			zero[address - 0xFF80] = value;
+		} else if (address == TIMER_CONTROLLER) {
+			updateTimerFrecuency(value);
+		} else if (address == DIVIDER_REGISTER_ADDRESS) {
+			ram[DIVIDER_REGISTER_ADDRESS] = 0;
 		}
+	}
+
+	private void updateTimerFrecuency(int value) {
+		int oldFrequency = getTimerFrequency();
+		if (oldFrequency != (value & 3)) {
+			setFrequency(value);
+		}
+	}
+
+	private void setFrequency(int value) {
+		ram[TIMER_ADDRESS] = value;
+		this.cpu.updateTimerCounter(value);
+	}
+
+	private int getTimerFrequency() {
+		return ram[TIMER_ADDRESS] & 3;
 	}
 
 	public int getByte(int address) {
@@ -105,5 +128,16 @@ public class MMU {
 
 	public int getWord(int address) {
 		return getByte(address + 1) << 8 | getByte(address);
+	}
+
+	public void setCpu(Z80Cpu cpu) {
+		this.cpu = cpu;
+	}
+
+	public void incrementDividerRegister() {
+		ram[DIVIDER_REGISTER_ADDRESS] += 1;
+		if (ram[DIVIDER_REGISTER_ADDRESS] == 256) {
+			ram[DIVIDER_REGISTER_ADDRESS] = 0;
+		}
 	}
 }
