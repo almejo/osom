@@ -9,6 +9,8 @@ import java.nio.file.Paths;
 
 public class MMU {
 	private static final int DIVIDER_REGISTER_ADDRESS = 0xFF04;
+	public static final int INTERRUPT_CONTROLLER_ADDRESS = 0xFF0F;
+	public static final int INTERRUPT_ENABLED_ADDRESS = 0xFFFF;
 	public static int TIMER_ADDRESS = 0xFF05;
 	public static int TIMER_MODULATOR = 0xFF06;
 	public static int TIMER_CONTROLLER = 0xFF07;
@@ -62,10 +64,6 @@ public class MMU {
 			updatetile(address - 0x8000);
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			external[address - 0xa000] = value;
-		} else if (address >= 0xC000 && address <= 0xDFFF) {
-			ram[address - 0xC000] = value;
-		} else if (address >= 0xE000 && address <= 0xFDFF) {
-			ram[address - 0xE000] = value;
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
 			sprites[address - 0xFE00] = value;
 //		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
@@ -78,6 +76,10 @@ public class MMU {
 			updateTimerFrecuency(value);
 		} else if (address == DIVIDER_REGISTER_ADDRESS) {
 			ram[DIVIDER_REGISTER_ADDRESS] = 0;
+		} else if (address >= 0x0000 && address <= 0xDFFF) {
+			ram[address] = value;
+		} else if (address >= 0xE000 && address <= 0xFDFF) {
+			ram[address - 0x2000] = value;
 		}
 	}
 
@@ -110,10 +112,6 @@ public class MMU {
 			return video[address - 0x8000];
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			return external[address - 0xa000];
-		} else if (address >= 0xC000 && address <= 0xDFFF) {
-			return ram[address - 0xC000];
-		} else if (address >= 0xE000 && address <= 0xFDFF) {
-			return ram[address - 0xE000];
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
 			return sprites[address - 0xFE00];
 		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
@@ -122,6 +120,10 @@ public class MMU {
 			return 0; // io[address - 0xFF00];
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			return zero[address - 0xFF80];
+		} else if (address >= 0xC000 && address <= 0xDFFF) {
+			return ram[address];
+		} else if (address >= 0xE000 && address <= 0xFDFF) {
+			return ram[address - 0x2000];
 		}
 		throw new UnreadableMemoryLocation(address);
 	}

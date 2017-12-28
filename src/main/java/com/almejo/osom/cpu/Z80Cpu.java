@@ -136,17 +136,25 @@ public class Z80Cpu {
 
 	void setFlag(byte flag, boolean set) {
 		if (set) {
-			AF.setLo(AF.getLo() | 1 << flag);
+			AF.setLo(setBit(AF.getLo(), flag));
 		} else {
-			AF.setLo(AF.getLo() & ~(1 << flag));
+			AF.setLo(resetBit(AF.getLo(), flag));
 		}
 	}
 
-	boolean isFlagSetted(byte flag) {
-		return isBitSetted(flag, AF.getLo());
+	private int resetBit(int value, int n) {
+		return value & ~(1 << n);
 	}
 
-	private boolean isBitSetted(int flag, int value) {
+	private int setBit(int value, int n) {
+		return value | 1 << n;
+	}
+
+	boolean isFlagSetted(byte flag) {
+		return isBitSetted(AF.getLo(), flag);
+	}
+
+	private boolean isBitSetted(int value, int flag) {
 		return (value & 1 << flag) > 0;
 	}
 
@@ -196,7 +204,7 @@ public class Z80Cpu {
 
 	private void updateDividerRegister(int cycles) {
 		dividerCounter += cycles;
-		if (dividerCounter>= 255) {
+		if (dividerCounter >= 255) {
 			dividerCounter = 0;
 			this.mmu.incrementDividerRegister();
 		}
@@ -221,7 +229,8 @@ public class Z80Cpu {
 	}
 
 	private void requestInterrupt(int bit) {
-
+		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
+		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, setBit(value, bit));
 	}
 
 	private boolean isClockEnabled() {
@@ -247,5 +256,31 @@ public class Z80Cpu {
 			default:
 				return this.cyclesPerSecond / 4096;
 		}
+	}
+
+	public void checkInterrupts() {
+		if (interruptionsEnabled) {
+			int requests = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
+			int enabledInterrupts = mmu.getByte(MMU.INTERRUPT_ENABLED_ADDRESS);
+			for (int i = 0; i < 5; i++) {
+				if (canServeInterrupt(requests, enabledInterrupts, i)) {
+					serveInterrupt(i);
+				}
+			}
+		}
+	}
+
+	private void serveInterrupt(int bit) {
+		interruptionsEnabled = false;
+		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
+		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, resetBit(value, bit));
+
+		// Save program counter
+
+		// Change program counter
+	}
+
+	private boolean canServeInterrupt(int requests, int enabledInterrupts, int i) {
+		return isBitSetted(requests, i) && isBitSetted(enabledInterrupts, i);
 	}
 }

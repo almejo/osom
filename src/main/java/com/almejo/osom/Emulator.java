@@ -42,6 +42,7 @@ public class Emulator {
 			cpu.execute();
 			int cycles = cpu.clock.getT() - oldCycles;
 			cpu.updateTimers(cycles);
+			cpu.checkInterrupts();
 			gpu.update(cycles);
 		}
 	}
