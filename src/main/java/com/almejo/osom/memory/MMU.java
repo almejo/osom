@@ -132,6 +132,13 @@ public class MMU {
 		return getByte(address + 1) << 8 | getByte(address);
 	}
 
+	public void setWord(int address, int word) {
+		int hi = word >> 8;
+		int lo = word & 0x00ff;
+		setByte(address + 1, hi);
+		setByte(address, lo);
+	}
+
 	public void setCpu(Z80Cpu cpu) {
 		this.cpu = cpu;
 	}

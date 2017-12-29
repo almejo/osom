@@ -35,7 +35,15 @@ class Register {
 
 	@Override
 	public String toString() {
-		return this.name + "=0x" + Integer.toHexString(this.getValue()) + " (b" + Integer.toBinaryString(this.getHi()) + " " + Integer.toBinaryString(this.getLo()) + ")";
+		return this.name + "=0x" + toHex(this.getValue()) + " (b" + toBinary(this.getHi()) + " " + toBinary(this.getLo()) + ")";
+	}
+
+	private String toHex(int value) {
+		return String.format("%4s", Integer.toHexString(value)).replace(" ", "0");
+	}
+
+	private String toBinary(int value) {
+		return String.format("%8s", Integer.toBinaryString(value)).replace(" ", "0");
 	}
 
 	public void inc(int value) {

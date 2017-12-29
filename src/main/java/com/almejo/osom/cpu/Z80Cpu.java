@@ -97,6 +97,9 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_C_A(this, this.mmu));
 		addOpcode(new OperationPUSH_BC(this, this.mmu));
 		addOpcode(new OperationRL_C(this, this.mmu));
+		addOpcode(new OperationRLA(this, this.mmu));
+
+		addOpcode(new OperationPOP_BC(this, this.mmu));
 
 	}
 
@@ -287,15 +290,24 @@ public class Z80Cpu {
 	}
 
 	public void pushWordOnStack(int value) {
-		int hi = value >> 8;
-		int lo = value & 0x00ff;
-		SP.dec(1);
-		mmu.setByte(SP.getValue(), hi);
-		SP.dec(1);
-		mmu.setByte(SP.getValue(), lo);
+//		int hi = value >> 8;
+//		int lo = value & 0x00ff;
+//		SP.dec(1);
+//		mmu.setByte(SP.getValue(), hi);
+//		SP.dec(1);
+//		mmu.setByte(SP.getValue(), lo);
+		SP.dec(2);
+		mmu.setWord(SP.getValue(), value);
+	}
+
+	public int getWordOnStack() {
+		int value = mmu.getWord(SP.getValue());
+		SP.inc(2);
+		return value;
 	}
 
 	private boolean canServeInterrupt(int requests, int enabledInterrupts, int i) {
 		return BitUtils.isBitSetted(requests, i) && BitUtils.isBitSetted(enabledInterrupts, i);
 	}
+
 }

@@ -78,4 +78,16 @@ public class ALU {
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, true);
 	}
+
+	public int rotateLeft(int oldValue) {
+		int value = (oldValue << 1) & 0xff;
+		if (cpu.isFlagSetted(Z80Cpu.FLAG_CARRY)) {
+			value = BitUtils.setBit(value, 0);
+		}
+		cpu.setFlag(Z80Cpu.FLAG_CARRY, BitUtils.isBitSetted(oldValue, 7));
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, false);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, value == 0);
+		return value;
+	}
 }
