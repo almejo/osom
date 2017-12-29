@@ -6,8 +6,15 @@ import lombok.Setter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class Z80Cpu {
+	private static final Map<Integer, Integer> INTERRUPT_ADDRESSES = new HashMap<>();
+	private static final int INTERRUPT_ADDRESS_V_BALNK = 0x40;
+	private static final int INTERRUPT_ADDRESS_LCD = 0x48;
+	private static final int INTERRUPT_ADDRESS_TIMER = 0x50;
+	private static final int INTERRUPT_ADDRESS_JOYPAD = 0x60;
+
 	private static final int INTERRUPT_BIT_V_BLANK = 0;
 	private static final int INTERRUPT_BIT_LCD = 1;
 	private static final int INTERRUPT_BIT_TIMER = 2;
@@ -22,6 +29,13 @@ public class Z80Cpu {
 	private HashMap<Integer, Operation> operations = new HashMap<>();
 
 	private HashMap<Integer, Operation> operationsCB = new HashMap<>();
+
+	static {
+		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_V_BLANK, INTERRUPT_ADDRESS_V_BALNK);
+		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_LCD, INTERRUPT_ADDRESS_LCD);
+		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_TIMER, INTERRUPT_ADDRESS_TIMER);
+		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_JOYPAD, INTERRUPT_ADDRESS_JOYPAD);
+	}
 
 	@Setter
 	private MMU mmu;
@@ -79,6 +93,11 @@ public class Z80Cpu {
 
 		addOpcode(new OperationLD_DE_nn(this, this.mmu));
 		addOpcode(new OperationLD_A_DE(this, this.mmu));
+		addOpcode(new OperationCALL_nn(this, this.mmu));
+		addOpcode(new OperationLD_C_A(this, this.mmu));
+		addOpcode(new OperationPUSH_BC(this, this.mmu));
+		addOpcode(new OperationRL_C(this, this.mmu));
+
 	}
 
 	private void addOpcode(Operation operation) {
@@ -136,26 +155,14 @@ public class Z80Cpu {
 
 	void setFlag(byte flag, boolean set) {
 		if (set) {
-			AF.setLo(setBit(AF.getLo(), flag));
+			AF.setLo(BitUtils.setBit(AF.getLo(), flag));
 		} else {
-			AF.setLo(resetBit(AF.getLo(), flag));
+			AF.setLo(BitUtils.resetBit(AF.getLo(), flag));
 		}
 	}
 
-	private int resetBit(int value, int n) {
-		return value & ~(1 << n);
-	}
-
-	private int setBit(int value, int n) {
-		return value | 1 << n;
-	}
-
 	boolean isFlagSetted(byte flag) {
-		return isBitSetted(AF.getLo(), flag);
-	}
-
-	private boolean isBitSetted(int value, int flag) {
-		return (value & 1 << flag) > 0;
+		return BitUtils.isBitSetted(AF.getLo(), flag);
 	}
 
 
@@ -230,7 +237,7 @@ public class Z80Cpu {
 
 	private void requestInterrupt(int bit) {
 		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
-		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, setBit(value, bit));
+		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.setBit(value, bit));
 	}
 
 	private boolean isClockEnabled() {
@@ -273,14 +280,22 @@ public class Z80Cpu {
 	private void serveInterrupt(int bit) {
 		interruptionsEnabled = false;
 		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
-		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, resetBit(value, bit));
+		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.resetBit(value, bit));
 
-		// Save program counter
+		pushWordOnStack(PC.getValue());
+		PC.setValue(INTERRUPT_ADDRESSES.get(bit));
+	}
 
-		// Change program counter
+	public void pushWordOnStack(int value) {
+		int hi = value >> 8;
+		int lo = value & 0x00ff;
+		SP.dec(1);
+		mmu.setByte(SP.getValue(), hi);
+		SP.dec(1);
+		mmu.setByte(SP.getValue(), lo);
 	}
 
 	private boolean canServeInterrupt(int requests, int enabledInterrupts, int i) {
-		return isBitSetted(requests, i) && isBitSetted(enabledInterrupts, i);
+		return BitUtils.isBitSetted(requests, i) && BitUtils.isBitSetted(enabledInterrupts, i);
 	}
 }

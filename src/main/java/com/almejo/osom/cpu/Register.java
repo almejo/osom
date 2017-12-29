@@ -42,7 +42,19 @@ class Register {
 		setValue(getValue() + value);
 	}
 
+	public void dec(int value) {
+		setValue(getValue() - value);
+	}
+
 	public String getName(boolean lo) {
 		return "" + (lo ? getName().charAt(1) : getName().charAt(0));
+	}
+
+	public void set(boolean lo, int value) {
+		if (lo) {
+			setLo(value);
+		} else {
+			setHi(value);
+		}
 	}
 }

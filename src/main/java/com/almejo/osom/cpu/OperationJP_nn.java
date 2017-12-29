@@ -5,7 +5,7 @@ import com.almejo.osom.memory.MMU;
 class OperationJP_nn extends Operation {
 
 	OperationJP_nn(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 3, 16, 0xc3, 1);
+		super(cpu, mmu, 3, 16, 0xc3, 3);
 	}
 
 	@Override
