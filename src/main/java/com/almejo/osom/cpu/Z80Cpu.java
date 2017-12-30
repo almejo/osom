@@ -76,12 +76,15 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_HL_nn(this, this.mmu));
 		addOpcode(new OperationLDD_HL_A(this, this.mmu));
 		addOpcode(new OperationLD_SP_nn(this, this.mmu));
-		addOpcode(new OperationLD_C_n8b(this, this.mmu));
-		addOpcode(new OperationLD_B_n8b(this, this.mmu));
-		addOpcode(new OperationLD_A_n8b(this, this.mmu));
+		addOpcode(new OperationLD_A_n(this, this.mmu));
+		addOpcode(new OperationLD_B_n(this, this.mmu));
+		addOpcode(new OperationLD_C_n(this, this.mmu));
+		addOpcode(new OperationLD_L_n(this, this.mmu));
 		addOpcode(new OperationDEC_B(this, this.mmu));
 		addOpcode(new OperationDEC_C(this, this.mmu));
 		addOpcode(new OperationJR_NZ_n(this, this.mmu));
+		addOpcode(new OperationJR_Z_n(this, this.mmu));
+		addOpcode(new OperationJR_n(this, this.mmu));
 		addOpcode(new OperationDI(this, this.mmu));
 		addOpcode(new OperationLDH_n_A(this, this.mmu));
 		addOpcode(new OperationLDH_A_n(this, this.mmu));

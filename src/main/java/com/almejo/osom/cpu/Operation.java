@@ -30,4 +30,13 @@ public abstract class Operation {
 		clock.update(m, t);
 	}
 	abstract void execute();
+
+	int toSignedByte(int val) {
+		int delta = val;
+		if (delta > 127) {
+			delta = -1 * (0xff - delta);
+			// delta = -((~251+1)&0xff);
+		}
+		return delta;
+	}
 }

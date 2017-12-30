@@ -2,12 +2,12 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 
-class OperationLD_r_n_8b extends Operation {
+class OperationLD_r_n extends Operation {
 
 	private final boolean lo;
 	private Register register;
 
-	OperationLD_r_n_8b(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
+	OperationLD_r_n(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
 
 		super(cpu, mmu, m, t, code, 2);
 		this.lo = lo;
