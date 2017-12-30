@@ -14,6 +14,6 @@ class OperationPOP_rr extends Operation {
 	@Override
 	void execute() {
 		System.out.println("POP " + register.getName());
-		register.setValue(cpu.getWordOnStack());
+		register.setValue(cpu.popWordOnStack());
 	}
 }

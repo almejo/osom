@@ -100,6 +100,13 @@ public class Z80Cpu {
 		addOpcode(new OperationRLA(this, this.mmu));
 
 		addOpcode(new OperationPOP_BC(this, this.mmu));
+		addOpcode(new OperationLD_HLI_A(this, this.mmu));
+		addOpcode(new OperationINC_HL(this, this.mmu));
+		addOpcode(new OperationINC_DE(this, this.mmu));
+		addOpcode(new OperationRET(this, this.mmu));
+		addOpcode(new OperationLD_A_E(this, this.mmu));
+		addOpcode(new OperationLD_nn_A(this, this.mmu));
+		addOpcode(new OperationDEC_A(this, this.mmu));
 
 	}
 
@@ -300,7 +307,7 @@ public class Z80Cpu {
 		mmu.setWord(SP.getValue(), value);
 	}
 
-	public int getWordOnStack() {
+	public int popWordOnStack() {
 		int value = mmu.getWord(SP.getValue());
 		SP.inc(2);
 		return value;
