@@ -16,6 +16,16 @@ public class ALU {
 		return value;
 	}
 
+
+	public int or(int a, int b) {
+		int value = a | b;
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, value == 0);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, false);
+		cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
+		return value;
+	}
+
 	public void dec(Register register, boolean alterFlags) {
 		int oldValue = register.getValue();
 		register.setValue(register.getValue() - 1);
