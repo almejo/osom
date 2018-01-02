@@ -9,7 +9,7 @@ public class BitUtils {
 		return value & ~(1 << n);
 	}
 
-	static boolean isBitSetted(int value, int flag) {
+	public static boolean isBitSetted(int value, int flag) {
 		return (value & 1 << flag) > 0;
 	}
 }

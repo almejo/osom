@@ -11,6 +11,6 @@ class OperationLDH_n_A extends Operation {
 	void execute() {
 		int value = mmu.getByte(cpu.PC.getValue() + 1);
 		System.out.println("LD (0xFF00 + " + Integer.toHexString(value) + "), A");
-		mmu.setByte(0xFF + value, cpu.AF.getHi());
+		mmu.setByte(0xFF00 + value, cpu.AF.getHi());
 	}
 }

@@ -10,10 +10,10 @@ import java.util.Map;
 
 public class Z80Cpu {
 	private static final Map<Integer, Integer> INTERRUPT_ADDRESSES = new HashMap<>();
-	private static final int INTERRUPT_ADDRESS_V_BALNK = 0x40;
-	private static final int INTERRUPT_ADDRESS_LCD = 0x48;
-	private static final int INTERRUPT_ADDRESS_TIMER = 0x50;
-	private static final int INTERRUPT_ADDRESS_JOYPAD = 0x60;
+	public static final int INTERRUPT_ADDRESS_V_BLANK = 0x40;
+	public static final int INTERRUPT_ADDRESS_LCD = 0x48;
+	public static final int INTERRUPT_ADDRESS_TIMER = 0x50;
+	public static final int INTERRUPT_ADDRESS_JOY_PAD = 0x60;
 
 	private static final int INTERRUPT_BIT_V_BLANK = 0;
 	private static final int INTERRUPT_BIT_LCD = 1;
@@ -31,10 +31,10 @@ public class Z80Cpu {
 	private HashMap<Integer, Operation> operationsCB = new HashMap<>();
 
 	static {
-		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_V_BLANK, INTERRUPT_ADDRESS_V_BALNK);
+		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_V_BLANK, INTERRUPT_ADDRESS_V_BLANK);
 		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_LCD, INTERRUPT_ADDRESS_LCD);
 		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_TIMER, INTERRUPT_ADDRESS_TIMER);
-		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_JOYPAD, INTERRUPT_ADDRESS_JOYPAD);
+		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_JOYPAD, INTERRUPT_ADDRESS_JOY_PAD);
 	}
 
 	@Setter
@@ -69,7 +69,7 @@ public class Z80Cpu {
 		registers.add(PC);
 		registers.add(SP);
 		alu = new ALU(this);
-
+		addOpcode(new OperationADD_aHL(this, this.mmu));
 		addOpcode(new OperationNOOP(this, this.mmu));
 		addOpcode(new OperationJP_nn(this, this.mmu));
 		addOpcode(new OperationXOR_A(this, this.mmu));
@@ -79,37 +79,50 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_A_n(this, this.mmu));
 		addOpcode(new OperationLD_B_n(this, this.mmu));
 		addOpcode(new OperationLD_C_n(this, this.mmu));
+		addOpcode(new OperationLD_D_n(this, this.mmu));
+		addOpcode(new OperationLD_E_n(this, this.mmu));
 		addOpcode(new OperationLD_L_n(this, this.mmu));
 		addOpcode(new OperationDEC_B(this, this.mmu));
 		addOpcode(new OperationDEC_C(this, this.mmu));
+		addOpcode(new OperationDEC_D(this, this.mmu));
+		addOpcode(new OperationDEC_E(this, this.mmu));
 		addOpcode(new OperationJR_NZ_n(this, this.mmu));
 		addOpcode(new OperationJR_Z_n(this, this.mmu));
 		addOpcode(new OperationJR_n(this, this.mmu));
 		addOpcode(new OperationDI(this, this.mmu));
 		addOpcode(new OperationLDH_n_A(this, this.mmu));
 		addOpcode(new OperationLDH_A_n(this, this.mmu));
+		addOpcode(new OperationCP_HL(this, this.mmu));
 		addOpcode(new OperationCP_n(this, this.mmu));
 		addOpcode(new OperationBIT_7_H(this, this.mmu));
 		addOpcode(new OperationLDH_C_A(this, this.mmu));
+		addOpcode(new OperationINC_B(this, this.mmu));
 		addOpcode(new OperationINC_C(this, this.mmu));
+		addOpcode(new OperationINC_H(this, this.mmu));
+		addOpcode(new OperationINC_HL(this, this.mmu));
+		addOpcode(new OperationINC_DE(this, this.mmu));
 		addOpcode(new OperationLD_HL_A(this, this.mmu));
 
 		addOpcode(new OperationLD_DE_nn(this, this.mmu));
 		addOpcode(new OperationLD_A_DE(this, this.mmu));
 		addOpcode(new OperationCALL_nn(this, this.mmu));
 		addOpcode(new OperationLD_C_A(this, this.mmu));
+		addOpcode(new OperationLD_D_A(this, this.mmu));
+		addOpcode(new OperationLD_H_A(this, this.mmu));
 		addOpcode(new OperationPUSH_BC(this, this.mmu));
 		addOpcode(new OperationRL_C(this, this.mmu));
 		addOpcode(new OperationRLA(this, this.mmu));
 
 		addOpcode(new OperationPOP_BC(this, this.mmu));
 		addOpcode(new OperationLD_HLI_A(this, this.mmu));
-		addOpcode(new OperationINC_HL(this, this.mmu));
-		addOpcode(new OperationINC_DE(this, this.mmu));
 		addOpcode(new OperationRET(this, this.mmu));
 		addOpcode(new OperationLD_A_E(this, this.mmu));
+		addOpcode(new OperationLD_A_H(this, this.mmu));
+		addOpcode(new OperationLD_A_L(this, this.mmu));
+		addOpcode(new OperationLD_A_B(this, this.mmu));
 		addOpcode(new OperationLD_nn_A(this, this.mmu));
 		addOpcode(new OperationDEC_A(this, this.mmu));
+		addOpcode(new OperationSUB_B(this, this.mmu));
 
 	}
 
@@ -248,7 +261,7 @@ public class Z80Cpu {
 		return mmu.getByte(MMU.TIMER_ADDRESS) == 255;
 	}
 
-	private void requestInterrupt(int bit) {
+	public void requestInterrupt(int bit) {
 		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
 		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.setBit(value, bit));
 	}

@@ -11,9 +11,13 @@ public class MMU {
 	private static final int DIVIDER_REGISTER_ADDRESS = 0xFF04;
 	public static final int INTERRUPT_CONTROLLER_ADDRESS = 0xFF0F;
 	public static final int INTERRUPT_ENABLED_ADDRESS = 0xFFFF;
+
 	public static int TIMER_ADDRESS = 0xFF05;
 	public static int TIMER_MODULATOR = 0xFF06;
 	public static int TIMER_CONTROLLER = 0xFF07;
+
+	public static int LCD_LINE_COUNTER = 0xFF44;
+	public static final int LCD_CONTROLLER = 0xFF40;
 
 	private boolean useBios;
 	private GPU gpu;
@@ -60,8 +64,8 @@ public class MMU {
 //			return;
 //		} else
 		if (address >= 0x8000 && address <= 0x9fff) {
-			video[address - 0x8000] = value;
-			updatetile(address - 0x8000);
+			ram[address] = value;
+			//updatetile(address - 0x8000);
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			external[address - 0xa000] = value;
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
@@ -70,10 +74,14 @@ public class MMU {
 //			return;
 //		} else if (address >= 0xFF00 && address <= 0xFF7F) {
 //			return; // io[address - 0xFF00] = value;
+		} else if (address == LCD_LINE_COUNTER) {
+			ram[address] = 0;
+		} else if (address == LCD_CONTROLLER) {
+			ram[address] = value;
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			zero[address - 0xFF80] = value;
 		} else if (address == TIMER_CONTROLLER) {
-			updateTimerFrecuency(value);
+			updateTimerFrequency(value);
 		} else if (address == DIVIDER_REGISTER_ADDRESS) {
 			ram[DIVIDER_REGISTER_ADDRESS] = 0;
 		} else if (address >= 0x0000 && address <= 0xDFFF) {
@@ -83,7 +91,7 @@ public class MMU {
 		}
 	}
 
-	private void updateTimerFrecuency(int value) {
+	private void updateTimerFrequency(int value) {
 		int oldFrequency = getTimerFrequency();
 		if (oldFrequency != (value & 3)) {
 			setFrequency(value);
@@ -104,18 +112,21 @@ public class MMU {
 			if (useBios && address <= 0x100) {
 				if (address == 0x100) {
 					useBios = false;
+					return this.cartridge.getByte(address);
 				}
 				return bios[address];
 			}
 			return this.cartridge.getByte(address);
 		} else if (address >= 0x8000 && address <= 0x9fff) {
-			return video[address - 0x8000];
+			return ram[address];
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			return external[address - 0xa000];
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
 			return sprites[address - 0xFE00];
 		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
 			return 0;
+		} else if (address == LCD_LINE_COUNTER || address == LCD_CONTROLLER) {
+			return ram[address];
 		} else if (address >= 0xFF00 && address <= 0xFF7F) {
 			return 0; // io[address - 0xFF00];
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
@@ -139,6 +150,19 @@ public class MMU {
 		setByte(address, lo);
 	}
 
+	public int getByteSigned(int address) {
+		return toSignedByte(getByte(address));
+	}
+
+	private int toSignedByte(int val) {
+		int delta = val;
+		if (delta > 127) {
+			delta = -1 * (0xff - delta);
+			// delta = -((~251+1)&0xff);
+		}
+		return delta;
+	}
+
 	public void setCpu(Z80Cpu cpu) {
 		this.cpu = cpu;
 	}
@@ -148,6 +172,10 @@ public class MMU {
 		if (ram[DIVIDER_REGISTER_ADDRESS] == 256) {
 			ram[DIVIDER_REGISTER_ADDRESS] = 0;
 		}
+	}
+
+	public void setScanline(int lineNumber) {
+		ram[LCD_LINE_COUNTER] = lineNumber;
 	}
 
 }
