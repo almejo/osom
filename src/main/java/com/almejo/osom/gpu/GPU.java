@@ -45,7 +45,7 @@ public class GPU {
 					clock = 0;
 					line++;
 					mmu.setScanline(line + 1);
-					if (line >= 143) {
+					if (line == 144) {
 						mode = V_BLANK;
 						cpu.requestInterrupt(Z80Cpu.INTERRUPT_ADDRESS_V_BLANK);
 						drawScreen();
@@ -55,11 +55,21 @@ public class GPU {
 				}
 				break;
 			case V_BLANK:
-				if (clock >= 456 * 144) {
+//				if (clock >= 456 * 144) {
+//					clock = 0;
+//					line = 0;
+//					mmu.setScanline(1);
+//					mode = SPRITES;
+//				}
+				if (clock >= 456) {
 					clock = 0;
-					line = 0;
-					mmu.setScanline(1);
-					mode = SPRITES;
+					line++;
+					mmu.setScanline(line + 1);
+					if (line > 153) {
+						mode = SPRITES;
+						line = 0;
+						mmu.setScanline(line + 1);
+					}
 				}
 				break;
 			case SPRITES:
@@ -86,6 +96,9 @@ public class GPU {
 	}
 
 	private void drawLine() {
+		if (mmu.getByte(MMU.LCD_LINE_COUNTER) > 143) {
+			return;
+		}
 		// System.out.println("drawLine");
 		System.out.println("draw screeeeeeeeeeeeeeeeeeeen");
 		int control = getControlInfo();
@@ -146,12 +159,12 @@ public class GPU {
 			int tileLine = (line % 8) * 2;// 2 bytes
 			int byte1 = mmu.getByte(tileLocation + tileLine);
 			int byte2 = mmu.getByte(tileLocation + tileLine + 1);
-			int bit = xPos % 8 ;
-			bit -= 7 ;
-			bit *= -1 ;
+			int bit = xPos % 8;
+			bit -= 7;
+			bit *= -1;
 
-			int color = BitUtils.isBitSetted(byte1, bit) ? 1: 0;
-			color |= (BitUtils.isBitSetted(byte2, bit) ? 1: 0) << 1;
+			int color = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
+			color |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
 			pixels[pixel][line] = color;
 		}
 	}

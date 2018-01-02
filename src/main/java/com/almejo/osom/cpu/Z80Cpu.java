@@ -74,6 +74,8 @@ public class Z80Cpu {
 		addOpcode(new OperationJP_nn(this, this.mmu));
 		addOpcode(new OperationXOR_A(this, this.mmu));
 		addOpcode(new OperationLD_HL_nn(this, this.mmu));
+		addOpcode(new OperationLD_BC_nn(this, this.mmu));
+
 		addOpcode(new OperationLDD_HL_A(this, this.mmu));
 		addOpcode(new OperationLD_SP_nn(this, this.mmu));
 		addOpcode(new OperationLD_A_n(this, this.mmu));
@@ -82,6 +84,8 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_D_n(this, this.mmu));
 		addOpcode(new OperationLD_E_n(this, this.mmu));
 		addOpcode(new OperationLD_L_n(this, this.mmu));
+		addOpcode(new OperationLD_HL_n(this, this.mmu));
+
 		addOpcode(new OperationDEC_B(this, this.mmu));
 		addOpcode(new OperationDEC_C(this, this.mmu));
 		addOpcode(new OperationDEC_D(this, this.mmu));
@@ -92,6 +96,8 @@ public class Z80Cpu {
 		addOpcode(new OperationDI(this, this.mmu));
 		addOpcode(new OperationLDH_n_A(this, this.mmu));
 		addOpcode(new OperationLDH_A_n(this, this.mmu));
+		addOpcode(new OperationLD_A_HLI(this, this.mmu));
+
 		addOpcode(new OperationCP_HL(this, this.mmu));
 		addOpcode(new OperationCP_n(this, this.mmu));
 		addOpcode(new OperationBIT_7_H(this, this.mmu));
@@ -267,8 +273,8 @@ public class Z80Cpu {
 	}
 
 	private boolean isClockEnabled() {
-		return true;
-//		return isBitSetted(TIMER_ENABLED_BIT, mmu.getByte(MMU.TIMER_CONTROLLER));
+//		return true;
+		return BitUtils.isBitSetted(TIMER_ENABLED_BIT, mmu.getByte(MMU.TIMER_CONTROLLER));
 	}
 
 	public void updateTimerCounter(int value) {

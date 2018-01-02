@@ -32,8 +32,8 @@ public class Emulator {
 		cpu.reset(bootBios);
 
 		JFrame frame = new JFrame();
-		frame.setSize(160 * LCDScreen.FACTOR, 144 *  LCDScreen.FACTOR);
-		frame.setPreferredSize(new Dimension(160 *  LCDScreen.FACTOR, 144 *  LCDScreen.FACTOR));
+		frame.setSize(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR);
+		frame.setPreferredSize(new Dimension(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR));
 		LCDScreen screen = new LCDScreen(gpu);
 		frame.getContentPane().add(screen);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -50,6 +50,8 @@ public class Emulator {
 //		frame.pack();
 //		frame.setVisible(true);
 
+		int frameCounter = 0;
+		int secondCounter = 0;
 		int time = 1000 / 60;
 		//noinspection InfiniteLoopStatement
 		while (true) {
@@ -66,6 +68,14 @@ public class Emulator {
 				cyclesToScreen -= cycles;
 			}
 			long delta = System.currentTimeMillis() - t;
+			secondCounter += delta;
+			frameCounter++;
+//			if (secondCounter >= 6000) {
+//				System.out.println("--------------------------------------------------frames " + frameCounter);
+//				secondCounter = 0;
+//				frameCounter = 0;
+//				System.exit(0);
+//			}
 			screen.repaint(time - delta);
 		}
 	}

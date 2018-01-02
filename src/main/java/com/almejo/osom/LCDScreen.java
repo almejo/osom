@@ -39,12 +39,12 @@ public class LCDScreen extends JPanel {
 			case 0:
 				return Color.black;
 			case 1:
-				return Color.white;
+				return Color.green;
 			case 2:
 				return Color.red;
 			case 3:
 				return Color.blue;
 		}
-		return Color.green;
+		return Color.white;
 	}
 }
