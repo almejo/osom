@@ -14,7 +14,9 @@ class OperationDEC_N extends Operation {
 
 	@Override
 	void execute() {
-		System.out.println("DEC " + register.getName(lo));
+		if (debug) {
+			System.out.println("DEC " + register.getName(lo));
+		}
 		if (lo) {
 			cpu.alu.decLO(register, true);
 		} else {

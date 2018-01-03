@@ -18,7 +18,9 @@ class OperationBIT_b_n extends OperationCB {
 	@Override
 	void execute() {
 		int value = lo ? register.getLo() : register.getHi();
-		System.out.println("BIT " + b + ", " + register.getName(lo));
+		if (debug) {
+			System.out.println("BIT " + b + ", " + register.getName(lo));
+		}
 		cpu.alu.setBIT((value & 1 << b) == 0);
 	}
 }

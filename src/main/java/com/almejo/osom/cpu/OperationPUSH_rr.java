@@ -13,7 +13,9 @@ class OperationPUSH_rr extends Operation {
 
 	@Override
 	void execute() {
-		System.out.println("PUSH " + register.getName());
+		if (debug) {
+			System.out.println("PUSH " + register.getName());
+		}
 		cpu.pushWordOnStack(register.getValue());
 	}
 }

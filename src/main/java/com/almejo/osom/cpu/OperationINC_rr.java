@@ -13,7 +13,9 @@ class OperationINC_rr extends OperationDEC_N {
 
 	@Override
 	void execute() {
-		System.out.println("INC " + register.getName());
+		if (debug) {
+			System.out.println("INC " + register.getName());
+		}
 		register.inc(1);
 	}
 }

@@ -17,7 +17,9 @@ class OperationLD_r_n extends Operation {
 	@Override
 	void execute() {
 		int address = cpu.PC.getValue() + 1;
-		System.out.println("LD " + register.getName(lo) + ", 0x" + Integer.toHexString(mmu.getByte(address)));
+		if (debug) {
+			System.out.println("LD " + register.getName(lo) + ", 0x" + Integer.toHexString(mmu.getByte(address)));
+		}
 		if (this.lo) {
 			register.setLo(mmu.getByte(address));
 		} else {

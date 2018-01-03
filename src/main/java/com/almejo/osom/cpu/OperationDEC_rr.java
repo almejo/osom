@@ -13,7 +13,9 @@ class OperationDEC_rr extends Operation {
 
 	@Override
 	void execute() {
-		System.out.println("DEC " + register.getName());
+		if (debug) {
+			System.out.println("DEC " + register.getName());
+		}
 		cpu.alu.dec(register, false);
 	}
 }

@@ -5,6 +5,9 @@ import com.almejo.osom.memory.MMU;
 import lombok.Getter;
 
 public abstract class Operation {
+
+	static final boolean debug = false;
+
 	protected Z80Cpu cpu;
 
 	protected MMU mmu;
@@ -26,9 +29,11 @@ public abstract class Operation {
 		this.code = code;
 		this.length = length;
 	}
+
 	void update(Clock clock) {
 		clock.update(m, t);
 	}
+
 	abstract void execute();
 
 	int toSignedByte(int val) {

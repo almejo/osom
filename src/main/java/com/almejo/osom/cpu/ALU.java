@@ -79,7 +79,7 @@ public class ALU {
 
 	public void addRegisterHI(Register register, int n) {
 		int oldValue = register.getHi();
-		register.setHi(register.getHi()+ n);
+		register.setHi(register.getHi() + n);
 		updateAddFlags(oldValue, n);
 	}
 

@@ -69,10 +69,15 @@ public class Z80Cpu {
 		registers.add(PC);
 		registers.add(SP);
 		alu = new ALU(this);
+		addOpcode(new OperationADD_A(this, this.mmu));
+		addOpcode(new OperationAND_n(this, this.mmu));
+		addOpcode(new OperationAND_C(this, this.mmu));
 		addOpcode(new OperationADD_aHL(this, this.mmu));
 		addOpcode(new OperationNOOP(this, this.mmu));
 		addOpcode(new OperationJP_nn(this, this.mmu));
 		addOpcode(new OperationXOR_A(this, this.mmu));
+		addOpcode(new OperationXOR_C(this, this.mmu));
+		addOpcode(new OperationOR_B(this, this.mmu));
 		addOpcode(new OperationOR_C(this, this.mmu));
 		addOpcode(new OperationLD_HL_nn(this, this.mmu));
 		addOpcode(new OperationLD_BC_nn(this, this.mmu));
@@ -96,6 +101,8 @@ public class Z80Cpu {
 		addOpcode(new OperationJR_Z_n(this, this.mmu));
 		addOpcode(new OperationJR_n(this, this.mmu));
 		addOpcode(new OperationDI(this, this.mmu));
+		addOpcode(new OperationEI(this, this.mmu));
+		addOpcode(new OperationCPL(this, this.mmu));
 		addOpcode(new OperationLDH_n_A(this, this.mmu));
 		addOpcode(new OperationLDH_A_n(this, this.mmu));
 		addOpcode(new OperationLD_A_HLI(this, this.mmu));
@@ -114,24 +121,33 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_DE_nn(this, this.mmu));
 		addOpcode(new OperationLD_A_DE(this, this.mmu));
 		addOpcode(new OperationCALL_nn(this, this.mmu));
+		addOpcode(new OperationLD_B_A(this, this.mmu));
 		addOpcode(new OperationLD_C_A(this, this.mmu));
 		addOpcode(new OperationLD_D_A(this, this.mmu));
+		addOpcode(new OperationLD_E_A(this, this.mmu));
+
 		addOpcode(new OperationLD_H_A(this, this.mmu));
 		addOpcode(new OperationPUSH_BC(this, this.mmu));
 		addOpcode(new OperationRL_C(this, this.mmu));
 		addOpcode(new OperationRLA(this, this.mmu));
 
 		addOpcode(new OperationPOP_BC(this, this.mmu));
+		addOpcode(new OperationPOP_HL(this, this.mmu));
 		addOpcode(new OperationLD_HLI_A(this, this.mmu));
 		addOpcode(new OperationRET(this, this.mmu));
+		addOpcode(new OperationLD_A_B(this, this.mmu));
+		addOpcode(new OperationLD_A_C(this, this.mmu));
+		// addOpcode(new OperationLD_A_D(this, this.mmu));
 		addOpcode(new OperationLD_A_E(this, this.mmu));
 		addOpcode(new OperationLD_A_H(this, this.mmu));
 		addOpcode(new OperationLD_A_L(this, this.mmu));
-		addOpcode(new OperationLD_A_B(this, this.mmu));
+
 		addOpcode(new OperationLD_nn_A(this, this.mmu));
 		addOpcode(new OperationDEC_A(this, this.mmu));
 		addOpcode(new OperationSUB_B(this, this.mmu));
+		addOpcode(new OperationSWAP_A(this, this.mmu));
 
+		addOpcode(new OperationRST_28(this, this.mmu));
 	}
 
 	private void addOpcode(Operation operation) {
@@ -169,15 +185,15 @@ public class Z80Cpu {
 		} else {
 			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode));
 		}
-		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
-		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
+//		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
+//		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
 		int oldPC = PC.getValue();
 		operation.execute();
 		operation.update(clock);
 		if (PC.getValue() == oldPC) {
 			PC.inc(operation.getLength());
 		}
-		printState();
+//		printState(e);
 	}
 
 	private void printState() {

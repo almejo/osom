@@ -15,7 +15,9 @@ class OperationINC_r extends Operation {
 
 	@Override
 	void execute() {
-		System.out.println("INC " + register.getName(lo));
+		if (debug) {
+			System.out.println("INC " + register.getName(lo));
+		}
 		if (lo) {
 			cpu.alu.incLO(register, true);
 		} else {

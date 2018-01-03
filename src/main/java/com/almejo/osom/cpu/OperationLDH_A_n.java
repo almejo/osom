@@ -9,8 +9,11 @@ class OperationLDH_A_n extends Operation {
 
 	@Override
 	void execute() {
-		int value = mmu.getByte(cpu.PC.getValue() + 1);
-		System.out.println("LDH A, (0xFF00 + " + Integer.toHexString(value) + ")");
-		cpu.AF.setHi(mmu.getByte(0xFF00 + value));
+		int address = mmu.getByte(cpu.PC.getValue() + 1);
+		int value = mmu.getByte(0xFF00 + address);
+		if (debug) {
+			System.out.println("LDH A, (0xFF00 + " + Integer.toHexString(address) + ") ; " + Integer.toHexString(value));
+		}
+		cpu.AF.setHi(value);
 	}
 }

@@ -9,6 +9,8 @@ public class LCDScreen extends JPanel {
 	private final GPU gpu;
 
 	static final int FACTOR = 2;
+	private int seconds;
+	private int frameCounter;
 
 	LCDScreen(GPU gpu) {
 		setSize(new Dimension(160 * FACTOR, 144 * FACTOR));
@@ -30,7 +32,9 @@ public class LCDScreen extends JPanel {
 			}
 		}
 		graphics.setColor(Color.red);
-		graphics.drawString("t: " +System.currentTimeMillis(), 0, 10);
+		graphics.drawString("t: " + System.currentTimeMillis(), 0, 10);
+		graphics.drawString("f: " + frameCounter, 0, 20);
+		graphics.drawString("s: " + seconds, 0, 30);
 		repaint();
 	}
 
@@ -46,5 +50,13 @@ public class LCDScreen extends JPanel {
 				return Color.blue;
 		}
 		return Color.white;
+	}
+
+	public void setSeconds(int seconds) {
+		this.seconds = seconds;
+	}
+
+	public void setFrameCounter(int frameCounter) {
+		this.frameCounter = frameCounter;
 	}
 }

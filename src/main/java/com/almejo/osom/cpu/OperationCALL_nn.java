@@ -11,7 +11,9 @@ class OperationCALL_nn extends Operation {
 	@Override
 	void execute() {
 		int nn = mmu.getWord(cpu.PC.getValue() + 1);
-		System.out.println("CALL 0x" + Integer.toHexString(nn));
+		if (debug) {
+			System.out.println("CALL 0x" + Integer.toHexString(nn));
+		}
 		cpu.pushWordOnStack(cpu.PC.getValue() + getLength());
 		cpu.PC.setValue(nn);
 	}

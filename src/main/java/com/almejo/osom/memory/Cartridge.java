@@ -7,9 +7,8 @@ public class Cartridge {
 	public Cartridge(byte[] bytes) {
 		this.bytes = ByteUtils.getBytes(bytes);
 		title = parseTitle();
-		System.out.println("Title: "+ title);
+		System.out.println("Title: " + title);
 	}
-
 
 
 	private String parseTitle() {
