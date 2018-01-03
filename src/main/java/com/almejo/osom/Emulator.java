@@ -69,7 +69,7 @@ public class Emulator {
 				cyclesToScreen -= cycles;
 			}
 			long delta = System.currentTimeMillis() - t;
-			System.out.println("cycles " + CYCLES_PER_FRAME + " delta " + delta);
+			// System.out.println("cycles " + CYCLES_PER_FRAME + " delta " + delta);
 			secondCounter += delta;
 			frameCounter++;
 			screen.setSeconds(secondCounter);

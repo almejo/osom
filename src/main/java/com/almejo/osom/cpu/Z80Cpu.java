@@ -73,8 +73,10 @@ public class Z80Cpu {
 		addOpcode(new OperationAND_n(this, this.mmu));
 		addOpcode(new OperationAND_C(this, this.mmu));
 		addOpcode(new OperationADD_aHL(this, this.mmu));
+		addOpcode(new OperationADD_HL_DE(this, this.mmu));
 		addOpcode(new OperationNOOP(this, this.mmu));
 		addOpcode(new OperationJP_nn(this, this.mmu));
+		addOpcode(new OperationJP_HL(this, this.mmu));
 		addOpcode(new OperationXOR_A(this, this.mmu));
 		addOpcode(new OperationXOR_C(this, this.mmu));
 		addOpcode(new OperationOR_B(this, this.mmu));
@@ -91,6 +93,9 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_E_n(this, this.mmu));
 		addOpcode(new OperationLD_L_n(this, this.mmu));
 		addOpcode(new OperationLD_HL_n(this, this.mmu));
+
+		addOpcode(new OperationLD_E_aHL(this, this.mmu));
+		addOpcode(new OperationLD_D_aHL(this, this.mmu));
 
 		addOpcode(new OperationDEC_B(this, this.mmu));
 		addOpcode(new OperationDEC_BC(this, this.mmu));
@@ -128,6 +133,7 @@ public class Z80Cpu {
 
 		addOpcode(new OperationLD_H_A(this, this.mmu));
 		addOpcode(new OperationPUSH_BC(this, this.mmu));
+		addOpcode(new OperationPUSH_DE(this, this.mmu));
 		addOpcode(new OperationRL_C(this, this.mmu));
 		addOpcode(new OperationRLA(this, this.mmu));
 
@@ -172,18 +178,18 @@ public class Z80Cpu {
 		Operation operation;
 		int operationCode = mmu.getByte(PC.getValue());
 		if (operationCode == PREFIX_CB) {
-			System.out.print("0xcb-");
+			//System.out.print("0xcb-");
 			PC.inc(1);
 			operationCode = mmu.getByte(PC.getValue());
 			if (operationsCB.containsKey(operationCode)) {
 				operation = operationsCB.get(operationCode);
 			} else {
-				throw new RuntimeException("code not found 0xcb 0x" + Integer.toHexString(operationCode));
+				throw new RuntimeException("code not found 0xcb 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
 			}
 		} else if (operations.containsKey(operationCode)) {
 			operation = operations.get(operationCode);
 		} else {
-			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode));
+			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
 		}
 //		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
 //		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");

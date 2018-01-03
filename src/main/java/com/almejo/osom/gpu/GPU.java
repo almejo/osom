@@ -99,7 +99,7 @@ public class GPU {
 		if (mmu.getByte(MMU.LCD_LINE_COUNTER) > 143) {
 			return;
 		}
-		System.out.println("draw drawLine");
+		// System.out.println("draw drawLine");
 		int control = getControlInfo();
 		if (backgroundEnabled(control)) {
 			renderBackground(control);
