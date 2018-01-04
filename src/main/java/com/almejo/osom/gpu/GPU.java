@@ -92,7 +92,9 @@ public class GPU {
 	}
 
 	private int getControlInfo() {
-		return mmu.getByte(MMU.LCD_CONTROLLER);
+		//return mmu.getByte(MMU.LCD_CONTROLLER);
+		// return 129;
+		return 145;
 	}
 
 	private void drawLine() {

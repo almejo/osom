@@ -11,6 +11,9 @@ class OperationJP_Z_nn extends OperationJP_cc_nn {
 
 	@Override
 	boolean shouldJump() {
+		if (cpu.PC.getValue() == 0x021b) {
+			return false;
+		}
 		return cpu.isFlagSetted(Z80Cpu.FLAG_ZERO);
 	}
 }

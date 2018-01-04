@@ -43,6 +43,8 @@ public class Z80Cpu {
 
 	final ALU alu;
 
+	boolean printLine = false;
+
 	private List<Register> registers = new LinkedList<>();
 	Register AF = new Register("AF");
 	Register BC = new Register("BC");
@@ -191,9 +193,13 @@ public class Z80Cpu {
 	public void execute() {
 		Operation operation;
 		int operationCode = mmu.getByte(PC.getValue());
-//		if (PC.getValue() == 0x27d6) {
+		if (PC.getValue() == 0x21b) {
+			//printLine = true;
 //			mmu.printVRAM();
 //			//System.exit(0);
+		}
+//		if (PC.getValue() == 0x2803) {
+//			mmu.printVRAM();
 //		}
 
 		if (operationCode == PREFIX_CB) {
@@ -209,6 +215,9 @@ public class Z80Cpu {
 			operation = operations.get(operationCode);
 		} else {
 			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
+		}
+		if (printLine) {
+			System.out.println("0x" + Integer.toHexString(PC.getValue()));
 		}
 //		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
 //		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
