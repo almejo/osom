@@ -29,7 +29,7 @@ class Register {
 		this.hi = value & 0x00ff;
 	}
 
-	int getValue() {
+	public int getValue() {
 		return hi << 8 | lo;
 	}
 

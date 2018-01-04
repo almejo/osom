@@ -31,14 +31,14 @@ public class Emulator {
 		gpu.setCpu(cpu);
 		cpu.reset(bootBios);
 
-		JFrame frame = new JFrame();
-		frame.setSize(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR);
-		frame.setPreferredSize(new Dimension(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR));
-		LCDScreen screen = new LCDScreen(gpu);
-		frame.getContentPane().add(screen);
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.pack();
-		frame.setVisible(true);
+//		JFrame frame = new JFrame();
+//		frame.setSize(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR);
+//		frame.setPreferredSize(new Dimension(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR));
+//		LCDScreen screen = new LCDScreen(gpu);
+//		frame.getContentPane().add(screen);
+//		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+//		frame.pack();
+//		frame.setVisible(true);
 
 //		JTextArea textArea = new JTextArea();
 //		textArea.setText(cartridge.toString());
@@ -72,15 +72,15 @@ public class Emulator {
 			// System.out.println("cycles " + CYCLES_PER_FRAME + " delta " + delta);
 			secondCounter += delta;
 			frameCounter++;
-			screen.setSeconds(secondCounter);
-			screen.setFrameCounter(frameCounter);
-			if (delta < 16) {
-				try {
-					Thread.sleep(16 - delta);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
+//			screen.setSeconds(secondCounter);
+//			screen.setFrameCounter(frameCounter);
+//			if (delta < 16) {
+//				try {
+//					Thread.sleep(16 - delta);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+//			}
 //			if (secondCounter >= 6000) {
 //				System.out.println("--------------------------------------------------frames " + frameCounter);
 //				secondCounter = 0;

@@ -54,7 +54,7 @@ public class Z80Cpu {
 	static byte FLAG_HALF_CARRY = 5;
 	static byte FLAG_CARRY = 4;
 
-	Register PC = new Register("PC");
+	public Register PC = new Register("PC");
 	Register SP = new Register("SP");
 	public Clock clock = new Clock();
 	private int dividerCounter;
@@ -71,11 +71,13 @@ public class Z80Cpu {
 		alu = new ALU(this);
 		addOpcode(new OperationADD_A(this, this.mmu));
 		addOpcode(new OperationAND_n(this, this.mmu));
+		addOpcode(new OperationAND_A(this, this.mmu));
 		addOpcode(new OperationAND_C(this, this.mmu));
 		addOpcode(new OperationADD_aHL(this, this.mmu));
 		addOpcode(new OperationADD_HL_DE(this, this.mmu));
 		addOpcode(new OperationNOOP(this, this.mmu));
 		addOpcode(new OperationJP_nn(this, this.mmu));
+		addOpcode(new OperationJP_Z_nn(this, this.mmu));
 		addOpcode(new OperationJP_HL(this, this.mmu));
 		addOpcode(new OperationXOR_A(this, this.mmu));
 		addOpcode(new OperationXOR_C(this, this.mmu));
@@ -93,9 +95,12 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_E_n(this, this.mmu));
 		addOpcode(new OperationLD_L_n(this, this.mmu));
 		addOpcode(new OperationLD_HL_n(this, this.mmu));
+		addOpcode(new OperationLD_A_ann(this, this.mmu));
 
-		addOpcode(new OperationLD_E_aHL(this, this.mmu));
+		addOpcode(new OperationLD_A_aHL(this, this.mmu));
 		addOpcode(new OperationLD_D_aHL(this, this.mmu));
+		addOpcode(new OperationLD_E_aHL(this, this.mmu));
+
 
 		addOpcode(new OperationDEC_B(this, this.mmu));
 		addOpcode(new OperationDEC_BC(this, this.mmu));
@@ -118,10 +123,13 @@ public class Z80Cpu {
 		addOpcode(new OperationLDH_C_A(this, this.mmu));
 		addOpcode(new OperationINC_B(this, this.mmu));
 		addOpcode(new OperationINC_C(this, this.mmu));
+		addOpcode(new OperationINC_E(this, this.mmu));
 		addOpcode(new OperationINC_H(this, this.mmu));
 		addOpcode(new OperationINC_HL(this, this.mmu));
 		addOpcode(new OperationINC_DE(this, this.mmu));
 		addOpcode(new OperationLD_HL_A(this, this.mmu));
+		addOpcode(new OperationLD_DE_A(this, this.mmu));
+
 
 		addOpcode(new OperationLD_DE_nn(this, this.mmu));
 		addOpcode(new OperationLD_A_DE(this, this.mmu));
@@ -132,15 +140,20 @@ public class Z80Cpu {
 		addOpcode(new OperationLD_E_A(this, this.mmu));
 
 		addOpcode(new OperationLD_H_A(this, this.mmu));
+		addOpcode(new OperationPUSH_AF(this, this.mmu));
 		addOpcode(new OperationPUSH_BC(this, this.mmu));
 		addOpcode(new OperationPUSH_DE(this, this.mmu));
+		addOpcode(new OperationPUSH_HL(this, this.mmu));
 		addOpcode(new OperationRL_C(this, this.mmu));
 		addOpcode(new OperationRLA(this, this.mmu));
 
+		addOpcode(new OperationPOP_AF(this, this.mmu));
 		addOpcode(new OperationPOP_BC(this, this.mmu));
+		addOpcode(new OperationPOP_DE(this, this.mmu));
 		addOpcode(new OperationPOP_HL(this, this.mmu));
 		addOpcode(new OperationLD_HLI_A(this, this.mmu));
 		addOpcode(new OperationRET(this, this.mmu));
+		addOpcode(new OperationRET_Z(this, this.mmu));
 		addOpcode(new OperationLD_A_B(this, this.mmu));
 		addOpcode(new OperationLD_A_C(this, this.mmu));
 		// addOpcode(new OperationLD_A_D(this, this.mmu));
@@ -154,6 +167,7 @@ public class Z80Cpu {
 		addOpcode(new OperationSWAP_A(this, this.mmu));
 
 		addOpcode(new OperationRST_28(this, this.mmu));
+		addOpcode(new OperationRES_0_A(this, this.mmu));
 	}
 
 	private void addOpcode(Operation operation) {
@@ -177,6 +191,11 @@ public class Z80Cpu {
 	public void execute() {
 		Operation operation;
 		int operationCode = mmu.getByte(PC.getValue());
+//		if (PC.getValue() == 0x27d6) {
+//			mmu.printVRAM();
+//			//System.exit(0);
+//		}
+
 		if (operationCode == PREFIX_CB) {
 			//System.out.print("0xcb-");
 			PC.inc(1);
@@ -193,14 +212,25 @@ public class Z80Cpu {
 		}
 //		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
 //		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
+		if (PC.getValue() >= 0x27d6) {
+			//Operation.debug = true;
+		}
+		if (Operation.debug) {
+			System.out.print("0x" + Integer.toHexString(PC.getValue()) + "] OPCODE 0x" + Integer.toHexString(operationCode) + " ");
+		}
 		int oldPC = PC.getValue();
 		operation.execute();
+		if (Operation.debug) {
+			printState();
+		}
 		operation.update(clock);
 		if (PC.getValue() == oldPC) {
 			PC.inc(operation.getLength());
 		}
 //		printState(e);
 	}
+
+
 
 	private void printState() {
 		StringBuilder builder = new StringBuilder();
@@ -327,7 +357,9 @@ public class Z80Cpu {
 			int enabledInterrupts = mmu.getByte(MMU.INTERRUPT_ENABLED_ADDRESS);
 			for (int i = 0; i < 5; i++) {
 				if (canServeInterrupt(requests, enabledInterrupts, i)) {
+					System.out.println("interrupt!!! "  + i);
 					serveInterrupt(i);
+					System.exit(0);
 				}
 			}
 		}
@@ -350,12 +382,14 @@ public class Z80Cpu {
 //		SP.dec(1);
 //		mmu.setByte(SP.getValue(), lo);
 		SP.dec(2);
+		// System.out.println("0x" + Integer.toHexString(PC.getValue()) + " push] 0x" + Integer.toHexString(value) + " " + SP.toString());
 		mmu.setWord(SP.getValue(), value);
 	}
 
 	public int popWordOnStack() {
 		int value = mmu.getWord(SP.getValue());
 		SP.inc(2);
+		// System.out.println("0x" + Integer.toHexString(PC.getValue()) + " pop] 0x" + Integer.toHexString(value) + " " + SP.toString());
 		return value;
 	}
 

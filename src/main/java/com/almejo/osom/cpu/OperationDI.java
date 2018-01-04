@@ -11,9 +11,9 @@ class OperationDI extends Operation {
 	@Override
 	void execute() {
 
-		if (debug) {
+		//if (debug) {
 			System.out.println("DI");
-		}
+		//}
 		cpu.setInterruptionsEnabled(false);
 	}
 }

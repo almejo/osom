@@ -2,11 +2,12 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 
-class OperationJR_Z_n extends OperationJR_cc_n {
+class OperationJP_Z_nn extends OperationJP_cc_nn {
 
-	OperationJR_Z_n(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 2, 12, 8, "Z", 0x28, 2);
+	OperationJP_Z_nn(Z80Cpu cpu, MMU mmu) {
+		super(cpu, mmu, 3, 16, 12, "Z", 0xca, 3);
 	}
+
 
 	@Override
 	boolean shouldJump() {

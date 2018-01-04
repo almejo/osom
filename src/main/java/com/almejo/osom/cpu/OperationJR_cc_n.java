@@ -4,8 +4,12 @@ import com.almejo.osom.memory.MMU;
 
 abstract class OperationJR_cc_n extends OperationConditional {
 
-	OperationJR_cc_n(Z80Cpu cpu, MMU mmu, int m, int t, int t2, int code, int length) {
+	private String condition;
+
+	OperationJR_cc_n(Z80Cpu cpu, MMU mmu, int m, int t, int t2, String condition, int code, int length) {
 		super(cpu, mmu, m, t, t2, code, length);
+
+		this.condition = condition;
 	}
 
 	@Override
@@ -13,7 +17,7 @@ abstract class OperationJR_cc_n extends OperationConditional {
 		this.actionTaken = false;
 		int delta = toSignedByte(mmu.getByte(cpu.PC.getValue() + 1));
 		if (debug) {
-			System.out.println("JR NZ, " + Integer.toHexString(delta));
+			System.out.println("JR " + condition + " " + Integer.toHexString(delta));
 		}
 		if (shouldJump()) {
 			cpu.PC.setValue(cpu.PC.getValue() + (delta < 0 ? 1 + delta : 2 + delta));

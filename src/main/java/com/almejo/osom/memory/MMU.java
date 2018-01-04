@@ -65,6 +65,9 @@ public class MMU {
 //		} else
 		if (address >= 0x8000 && address <= 0x9fff) {
 			ram[address] = value;
+//			if (address >= 0x9800 && address  <=0x9bff) {
+//				System.out.println(cpu.PC +  "---------->" + value);
+//			}
 			//updatetile(address - 0x8000);
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			external[address - 0xa000] = value;
@@ -178,4 +181,21 @@ public class MMU {
 		ram[LCD_LINE_COUNTER] = lineNumber;
 	}
 
+	public void printVRAM() {
+		System.out.println("PC" + cpu.PC);
+		System.out.println("TILES ------------------------------------------------");
+		for (int i = 0x8000; i<= 0x87FF; i++) {
+				System.out.print(ram[i]);
+		}
+		System.out.println();
+		System.out.println("MAP ------------------------------------------------");
+		int a = 0;
+		for (int i = 0; i < 32; i++) {
+			for(int j  = 0; j < 32; j++) {
+				System.out.print(ram[0x9800 + a]);
+				a++;
+			}
+			System.out.println();
+		}
+	}
 }

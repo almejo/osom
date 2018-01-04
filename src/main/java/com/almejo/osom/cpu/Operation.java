@@ -6,7 +6,7 @@ import lombok.Getter;
 
 public abstract class Operation {
 
-	static final boolean debug = false;
+	public static boolean debug = false;
 
 	protected Z80Cpu cpu;
 
