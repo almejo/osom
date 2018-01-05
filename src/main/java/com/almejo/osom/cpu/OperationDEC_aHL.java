@@ -14,14 +14,14 @@ class OperationDEC_aHL extends Operation {
 		int value = mmu.getByte(address);
 		int newValue = (value - 1) & 0xff;
 		mmu.setByte(address, newValue);
-//		if (debug) {
-		print("DEC [" + cpu.HL.getName() + "] ; HL = "
-				+ Integer.toHexString(address)
-				+ " " + Integer.toHexString(value)
-				+ " --> "
-				+ " " + Integer.toHexString(newValue));
+		if (debug) {
+			print("DEC [" + cpu.HL.getName() + "] ; HL = "
+					+ Integer.toHexString(address)
+					+ " " + Integer.toHexString(value)
+					+ " --> "
+					+ " " + Integer.toHexString(newValue));
 
-//		}
+		}
 		cpu.alu.updateDecFlags(value, 1);
 	}
 }

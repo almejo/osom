@@ -11,6 +11,7 @@ public class MMU {
 	private static final int DIVIDER_REGISTER_ADDRESS = 0xFF04;
 	public static final int INTERRUPT_CONTROLLER_ADDRESS = 0xFF0F;
 	public static final int INTERRUPT_ENABLED_ADDRESS = 0xFFFF;
+	public static final int DMA_ADDRESS = 0xFF46;
 
 	public static int TIMER_ADDRESS = 0xFF05;
 	public static int TIMER_MODULATOR = 0xFF06;
@@ -77,14 +78,22 @@ public class MMU {
 //			return;
 //		} else if (address >= 0xFF00 && address <= 0xFF7F) {
 //			return; // io[address - 0xFF00] = value;
+		} else if (address == DMA_ADDRESS) {
+			doDMATransfer(value);
 		} else if (address == LCD_LINE_COUNTER) {
 			ram[address] = 0;
 		} else if (address == LCD_CONTROLLER) {
 			ram[address] = value;
 		} else if (address == INTERRUPT_CONTROLLER_ADDRESS) {
 			ram[address] = value;
-		} else if (address >= 0xFF80 && address <= 0xFFFF) {
+		} else if (address == 0xFF80) {
+			return;
+		}
+		if (address > 0xFF80 && address <= 0xFFFF) {
 			ram[address] = value;
+//			if (address == 0xff81) {
+//				System.out.println(cpu.PC + "escrbiedo 81 " + Integer.toHexString(value) +  " ---> " + getByte(0xff81));
+//			}
 		} else if (address == TIMER_CONTROLLER) {
 			updateTimerFrequency(value);
 		} else if (address == DIVIDER_REGISTER_ADDRESS) {
@@ -93,6 +102,14 @@ public class MMU {
 			ram[address] = value;
 		} else if (address >= 0xE000 && address <= 0xFDFF) {
 			ram[address - 0x2000] = value;
+		}
+	}
+
+	private void doDMATransfer(int value) {
+		//System.out.println("doing dma " + (value << 8));
+		int address = value << 8; // source address is data * 100
+		for (int i = 0; i < 0xA0; i++) {
+			setByte(0xFE00 + i, getByte(address + i));
 		}
 	}
 
@@ -113,6 +130,10 @@ public class MMU {
 	}
 
 	public int getByte(int address) {
+//		if (address == 0xffa6) {
+//			System.out.println();
+//			System.out.println(cpu.PC + " revisando 0xffa6 ---> " + "0x" + Integer.toHexString(ram[0xffa6]));
+//		}
 		if (address >= 0 && address <= 0x7fff) {
 			if (useBios && address <= 0x100) {
 				if (address == 0x100) {
