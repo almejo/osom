@@ -53,3 +53,9 @@ roms/**
 
 *.iml
 .gradle/
+
+.classpath
+.project
+.settings/
+bin/
+
