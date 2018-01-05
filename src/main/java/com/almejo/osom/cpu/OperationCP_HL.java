@@ -12,7 +12,7 @@ class OperationCP_HL extends Operation {
 	void execute() {
 		int value = mmu.getByte(cpu.HL.getValue());
 		if (debug) {
-			System.out.println("CP HL; // 0x" + Integer.toHexString(value));
+			print("CP HL; // 0x" + Integer.toHexString(value));
 		}
 		cpu.alu.cpHI(cpu.AF, value);
 	}

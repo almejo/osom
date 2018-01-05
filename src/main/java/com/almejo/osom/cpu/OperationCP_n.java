@@ -12,7 +12,7 @@ class OperationCP_n extends Operation {
 	void execute() {
 		int n = mmu.getByte(cpu.PC.getValue() + 1);
 		if (debug) {
-			System.out.println("CP 0x" + Integer.toHexString(n) + " ; " + Integer.toHexString(cpu.AF.getHi()) + " == " + Integer.toHexString(n));
+			print("CP 0x" + Integer.toHexString(n) + " ; " + Integer.toHexString(cpu.AF.getHi()) + " == " + Integer.toHexString(n));
 		}
 		cpu.alu.cpHI(cpu.AF, n);
 	}

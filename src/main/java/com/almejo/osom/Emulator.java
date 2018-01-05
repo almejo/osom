@@ -1,12 +1,16 @@
 package com.almejo.osom;
 
+import com.almejo.osom.cpu.Operation;
 import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.gpu.GPU;
 import com.almejo.osom.memory.Cartridge;
 import com.almejo.osom.memory.MMU;
 
 import javax.swing.*;
+import javax.swing.text.MutableAttributeSet;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,14 +35,23 @@ public class Emulator {
 		gpu.setCpu(cpu);
 		cpu.reset(bootBios);
 
-		JFrame frame = new JFrame();
-		frame.setSize(160 * LCDScreen.FACTOR + LCDScreen.FACTOR, 144 * LCDScreen.FACTOR + LCDScreen.FACTOR);
-		frame.setPreferredSize(new Dimension(160 * LCDScreen.FACTOR + LCDScreen.FACTOR, 144 * LCDScreen.FACTOR + LCDScreen.FACTOR));
+		JFrame frame = new JFrame(getConfiguration(2).getDefaultConfiguration());
+		frame.setSize(160 * LCDScreen.FACTOR + LCDScreen.FACTOR, 160 * LCDScreen.FACTOR + LCDScreen.FACTOR);
+		frame.setPreferredSize(new Dimension(160 * LCDScreen.FACTOR + LCDScreen.FACTOR, 160 * LCDScreen.FACTOR + LCDScreen.FACTOR));
 		LCDScreen screen = new LCDScreen(gpu, mmu);
-		frame.getContentPane().add(screen);
+		JButton button = new JButton();
+		frame.getContentPane().add(screen, BorderLayout.CENTER);
+		frame.getContentPane().add(button, BorderLayout.SOUTH);
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.pack();
 		frame.setVisible(true);
+
+		button.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent mouseEvent) {
+				Operation.debug = true;
+			}
+		});
 
 //		JTextArea textArea = new JTextArea();
 //		textArea.setText(cartridge.toString());
@@ -90,7 +103,21 @@ public class Emulator {
 //				frameCounter = 0;
 //				System.exit(0);
 //			}
-			screen.repaint(time - delta);
+			//screen.repaint(time - delta);
 		}
+	}
+
+	private GraphicsDevice getConfiguration(int monitor) {
+		GraphicsEnvironment environment = GraphicsEnvironment
+				.getLocalGraphicsEnvironment();
+		GraphicsDevice[] gs = environment.getScreenDevices();
+		if (monitor > -1 && monitor < gs.length) {
+			return gs[Math.min(monitor, gs.length)];
+		}
+		if (gs.length > 0) {
+			return gs[0];
+		}
+		throw new RuntimeException("No Screens Found");
+
 	}
 }

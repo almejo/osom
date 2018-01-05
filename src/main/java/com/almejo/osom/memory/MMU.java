@@ -1,5 +1,6 @@
 package com.almejo.osom.memory;
 
+import com.almejo.osom.cpu.Operation;
 import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.gpu.GPU;
 
@@ -12,6 +13,7 @@ public class MMU {
 	public static final int INTERRUPT_CONTROLLER_ADDRESS = 0xFF0F;
 	public static final int INTERRUPT_ENABLED_ADDRESS = 0xFFFF;
 	public static final int DMA_ADDRESS = 0xFF46;
+	private static final int IO_REGISTER = 0xFF00;
 
 	public static int TIMER_ADDRESS = 0xFF05;
 	public static int TIMER_MODULATOR = 0xFF06;
@@ -87,13 +89,13 @@ public class MMU {
 		} else if (address == INTERRUPT_CONTROLLER_ADDRESS) {
 			ram[address] = value;
 		} else if (address == 0xFF80) {
-			return;
-		}
-		if (address > 0xFF80 && address <= 0xFFFF) {
+		} else if (address > 0xFF80 && address <= 0xFFFF) {
 			ram[address] = value;
 //			if (address == 0xff81) {
 //				System.out.println(cpu.PC + "escrbiedo 81 " + Integer.toHexString(value) +  " ---> " + getByte(0xff81));
 //			}
+		} else if (address == IO_REGISTER) {
+			ram[IO_REGISTER] = value;
 		} else if (address == TIMER_CONTROLLER) {
 			updateTimerFrequency(value);
 		} else if (address == DIVIDER_REGISTER_ADDRESS) {
@@ -151,6 +153,8 @@ public class MMU {
 			return sprites[address - 0xFE00];
 		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
 			return 0;
+		}	else if (address == IO_REGISTER) {
+			return getIOState();
 		} else if (address == LCD_LINE_COUNTER
 				|| address == LCD_CONTROLLER
 				|| address == INTERRUPT_CONTROLLER_ADDRESS) {
@@ -165,6 +169,12 @@ public class MMU {
 			return ram[address - 0x2000];
 		}
 		throw new UnreadableMemoryLocation(address);
+	}
+
+	private int getIOState() {
+		int state = (ram[IO_REGISTER] & 0xF0) | (0x08);
+	//	System.out.println(Integer.toHexString(state));
+		return state;
 	}
 
 	public int getWord(int address) {
