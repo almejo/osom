@@ -21,7 +21,7 @@ public class MMU {
 
 	private boolean useBios;
 	private GPU gpu;
-	private int[] ram = new int[0xffff];
+	private int[] ram = new int[0xffff + 1];
 	private int[] video = new int[0x1fff + 1];
 	private int[] external = new int[0x1fff + 1];
 	private int[] sprites = new int[0x9F + 1];
@@ -81,8 +81,10 @@ public class MMU {
 			ram[address] = 0;
 		} else if (address == LCD_CONTROLLER) {
 			ram[address] = value;
+		} else if (address == INTERRUPT_CONTROLLER_ADDRESS) {
+			ram[address] = value;
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
-			zero[address - 0xFF80] = value;
+			ram[address] = value;
 		} else if (address == TIMER_CONTROLLER) {
 			updateTimerFrequency(value);
 		} else if (address == DIVIDER_REGISTER_ADDRESS) {
@@ -128,12 +130,14 @@ public class MMU {
 			return sprites[address - 0xFE00];
 		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
 			return 0;
-		} else if (address == LCD_LINE_COUNTER || address == LCD_CONTROLLER) {
+		} else if (address == LCD_LINE_COUNTER
+				|| address == LCD_CONTROLLER
+				|| address == INTERRUPT_CONTROLLER_ADDRESS) {
 			return ram[address];
 		} else if (address >= 0xFF00 && address <= 0xFF7F) {
 			return 0; // io[address - 0xFF00];
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
-			return zero[address - 0xFF80];
+			return ram[address];
 		} else if (address >= 0xC000 && address <= 0xDFFF) {
 			return ram[address];
 		} else if (address >= 0xE000 && address <= 0xFDFF) {
@@ -184,14 +188,14 @@ public class MMU {
 	public void printVRAM() {
 		System.out.println("PC" + cpu.PC);
 		System.out.println("TILES ------------------------------------------------");
-		for (int i = 0x8000; i<= 0x87FF; i++) {
-				System.out.print(ram[i] + ".");
+		for (int i = 0x8000; i <= 0x87FF; i++) {
+			System.out.print(ram[i] + ".");
 		}
 		System.out.println();
 		System.out.println("MAP ------------------------------------------------");
 		int a = 0;
 		for (int i = 0; i < 32; i++) {
-			for(int j  = 0; j < 32; j++) {
+			for (int j = 0; j < 32; j++) {
 				System.out.print(ram[0x9800 + a] + ".");
 				a++;
 			}

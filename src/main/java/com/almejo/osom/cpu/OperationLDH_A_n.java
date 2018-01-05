@@ -12,7 +12,7 @@ class OperationLDH_A_n extends Operation {
 		int address = mmu.getByte(cpu.PC.getValue() + 1);
 		int value = mmu.getByte(0xFF00 + address);
 		if (debug) {
-			System.out.println("LDH A, (0xFF00 + " + Integer.toHexString(address) + ") ; " + Integer.toHexString(value));
+			print("LDH A, (0xFF00 + " + Integer.toHexString(address) + ") ; " + Integer.toHexString(value));
 		}
 		cpu.AF.setHi(value);
 	}

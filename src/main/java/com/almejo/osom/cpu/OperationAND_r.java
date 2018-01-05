@@ -17,7 +17,7 @@ abstract class OperationAND_r extends Operation {
 	void execute() {
 		int value = lo ? register.getLo() : register.getHi();
 		if (debug) {
-			System.out.println("AND " + register.getName(lo));
+			print("AND " + register.getName(lo));
 		}
 		int result = (cpu.AF.getHi() & value) & 0xff;
 		cpu.AF.setHi(result);

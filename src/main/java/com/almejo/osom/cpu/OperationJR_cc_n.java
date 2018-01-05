@@ -17,7 +17,7 @@ abstract class OperationJR_cc_n extends OperationConditional {
 		this.actionTaken = false;
 		int delta = toSignedByte(mmu.getByte(cpu.PC.getValue() + 1));
 		if (debug) {
-			System.out.println("JR " + condition + " " + Integer.toHexString(delta));
+			print("JR " + condition + " " + Integer.toHexString(delta));
 		}
 		if (shouldJump()) {
 			cpu.PC.setValue(cpu.PC.getValue() + (delta < 0 ? 1 + delta : 2 + delta));

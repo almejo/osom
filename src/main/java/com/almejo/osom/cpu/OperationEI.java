@@ -11,7 +11,7 @@ class OperationEI extends Operation {
 	@Override
 	void execute() {
 		if (debug) {
-			System.out.println("EI");
+			print("EI");
 		}
 		cpu.setInterruptionsEnabled(true);
 	}

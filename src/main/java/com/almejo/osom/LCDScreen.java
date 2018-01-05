@@ -14,6 +14,7 @@ public class LCDScreen extends JPanel {
 	private int seconds;
 	private int frameCounter;
 	private MMU mmu;
+	private int cycles;
 
 	LCDScreen(GPU gpu, MMU mmu) {
 		this.mmu = mmu;
@@ -37,8 +38,9 @@ public class LCDScreen extends JPanel {
 		}
 		graphics.setColor(Color.red);
 		graphics.drawString("t: " + System.currentTimeMillis(), 0, 10);
-		graphics.drawString("f: " + frameCounter, 0, 20);
-		graphics.drawString("s: " + seconds, 0, 30);
+		graphics.drawString("c: " + cycles, 0, 30);
+		graphics.drawString("f: " + frameCounter, 0, 40);
+		graphics.drawString("s: " + seconds, 0, 50);
 
 //		int tilesOffsetY = 100;
 //		for (int i = 0x8000; i <= 0x87FF; i += 2) {
@@ -78,5 +80,9 @@ public class LCDScreen extends JPanel {
 
 	public void setFrameCounter(int frameCounter) {
 		this.frameCounter = frameCounter;
+	}
+
+	public void setCycles(int cycles) {
+		this.cycles = cycles;
 	}
 }

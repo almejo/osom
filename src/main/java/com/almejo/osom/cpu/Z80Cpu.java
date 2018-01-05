@@ -109,6 +109,7 @@ public class Z80Cpu {
 		addOpcode(new OperationDEC_C(this, this.mmu));
 		addOpcode(new OperationDEC_D(this, this.mmu));
 		addOpcode(new OperationDEC_E(this, this.mmu));
+		addOpcode(new OperationDEC_aHL(this, this.mmu));
 		addOpcode(new OperationJR_NZ_n(this, this.mmu));
 		addOpcode(new OperationJR_Z_n(this, this.mmu));
 		addOpcode(new OperationJR_n(this, this.mmu));
@@ -123,12 +124,15 @@ public class Z80Cpu {
 		addOpcode(new OperationCP_n(this, this.mmu));
 		addOpcode(new OperationBIT_7_H(this, this.mmu));
 		addOpcode(new OperationLDH_C_A(this, this.mmu));
+		addOpcode(new OperationINC_A(this, this.mmu));
 		addOpcode(new OperationINC_B(this, this.mmu));
 		addOpcode(new OperationINC_C(this, this.mmu));
 		addOpcode(new OperationINC_E(this, this.mmu));
 		addOpcode(new OperationINC_H(this, this.mmu));
+		addOpcode(new OperationINC_L(this, this.mmu));
 		addOpcode(new OperationINC_HL(this, this.mmu));
 		addOpcode(new OperationINC_DE(this, this.mmu));
+		addOpcode(new OperationINC_aHL(this, this.mmu));
 		addOpcode(new OperationLD_HL_A(this, this.mmu));
 		addOpcode(new OperationLD_DE_A(this, this.mmu));
 
@@ -155,7 +159,9 @@ public class Z80Cpu {
 		addOpcode(new OperationPOP_HL(this, this.mmu));
 		addOpcode(new OperationLD_HLI_A(this, this.mmu));
 		addOpcode(new OperationRET(this, this.mmu));
+		addOpcode(new OperationRETI(this, this.mmu));
 		addOpcode(new OperationRET_Z(this, this.mmu));
+		addOpcode(new OperationRET_NZ(this, this.mmu));
 		addOpcode(new OperationLD_A_B(this, this.mmu));
 		addOpcode(new OperationLD_A_C(this, this.mmu));
 		// addOpcode(new OperationLD_A_D(this, this.mmu));
@@ -221,24 +227,28 @@ public class Z80Cpu {
 		}
 //		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
 //		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
-		if (PC.getValue() >= 0x27d6) {
-			//Operation.debug = true;
+		if (PC.getValue() == 0x01fe) {
+			Operation.debug = true;
 		}
-		if (Operation.debug) {
-			System.out.print("0x" + Integer.toHexString(PC.getValue()) + "] OPCODE 0x" + Integer.toHexString(operationCode) + " ");
-		}
+//		if (Operation.debug) {
+//			System.out.print("0x" + Integer.toHexString(PC.getValue()) + "] OPCODE 0x" + Integer.toHexString(operationCode) + " ");
+//		}
+//		if (PC.getValue() == 0x02f0) {
+//			System.out.println(" ----> " + mmu.getByte(MMU.INTERRUPT_ENABLED_ADDRESS) + " " + interruptionsEnabled);
+//			//System.exit(0);
+//		}
 		int oldPC = PC.getValue();
 		operation.execute();
-		if (Operation.debug) {
-			printState();
-		}
+
+//		if (Operation.debug) {
+//			printState();
+//		}
 		operation.update(clock);
 		if (PC.getValue() == oldPC) {
 			PC.inc(operation.getLength());
 		}
 //		printState(e);
 	}
-
 
 
 	private void printState() {
@@ -331,8 +341,10 @@ public class Z80Cpu {
 	}
 
 	public void requestInterrupt(int bit) {
+		System.out.println("requested interrupt " + Integer.toHexString(bit));
 		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
 		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.setBit(value, bit));
+		System.out.println("Quedo en " + Integer.toHexString(mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS)));
 	}
 
 	private boolean isClockEnabled() {
@@ -364,11 +376,14 @@ public class Z80Cpu {
 		if (interruptionsEnabled) {
 			int requests = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
 			int enabledInterrupts = mmu.getByte(MMU.INTERRUPT_ENABLED_ADDRESS);
+			if (PC.getValue() >=0x02e9  ) {
+				//System.out.println("control " + Integer.toHexString(requests) + " enabled "  + Integer.toHexString(enabledInterrupts));
+			}
 			for (int i = 0; i < 5; i++) {
 				if (canServeInterrupt(requests, enabledInterrupts, i)) {
-					System.out.println("interrupt!!! "  + i);
+					System.out.println("interrupt!!! " + i);
 					serveInterrupt(i);
-					System.exit(0);
+					//System.exit(0);
 				}
 			}
 		}
@@ -380,6 +395,7 @@ public class Z80Cpu {
 		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.resetBit(value, bit));
 
 		pushWordOnStack(PC.getValue());
+		System.out.println("serving interrupt " + Integer.toHexString(INTERRUPT_ADDRESSES.get(bit)));
 		PC.setValue(INTERRUPT_ADDRESSES.get(bit));
 	}
 

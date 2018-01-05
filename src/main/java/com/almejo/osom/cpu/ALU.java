@@ -34,20 +34,16 @@ public class ALU {
 		}
 	}
 
-	void decHI(Register register, boolean alterFlags) {
+	void decHI(Register register) {
 		int oldValue = register.getHi();
 		register.setHi(oldValue == 0 ? 0xff : oldValue - 1);
-		if (alterFlags) {
-			updateDecFlags(oldValue, 1);
-		}
+		updateDecFlags(oldValue, 1);
 	}
 
-	void decLO(Register register, boolean alterFlags) {
+	void decLO(Register register) {
 		int oldValue = register.getLo();
 		register.setLo(oldValue == 0 ? 0xff : oldValue - 1);
-		if (alterFlags) {
-			updateDecFlags(oldValue, 1);
-		}
+		updateDecFlags(oldValue, 1);
 	}
 
 	void incLO(Register register, boolean alterFlags) {
@@ -68,10 +64,10 @@ public class ALU {
 
 	void cpHI(Register register, int n) {
 		int value = register.getHi();
-		updateDecFlags(value, n);
+		updateSubFlags(value, n);
 	}
 
-	private void updateIncFlags(int value, int n) {
+	void updateIncFlags(int value, int n) {
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value + n) & 0xff) == 0);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
@@ -90,7 +86,14 @@ public class ALU {
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, (value + n) > 0xff);
 	}
 
-	private void updateDecFlags(int value, int n) {
+	void updateDecFlags(int value, int n) {
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value - n) & 0xff) == 0);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
+		// cpu.setFlag(Z80Cpu.FLAG_CARRY, value < n);
+	}
+
+	private void updateSubFlags(int value, int n) {
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value - n) & 0xff) == 0);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
@@ -118,6 +121,6 @@ public class ALU {
 	public void subHI(Register register, int value) {
 		int before = register.getHi();
 		register.setHi(register.getHi() - value);
-		updateDecFlags(before, value);
+		updateSubFlags(before, value);
 	}
 }

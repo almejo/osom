@@ -32,8 +32,8 @@ public class Emulator {
 		cpu.reset(bootBios);
 
 		JFrame frame = new JFrame();
-		frame.setSize(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR);
-		frame.setPreferredSize(new Dimension(160 * LCDScreen.FACTOR, 144 * LCDScreen.FACTOR));
+		frame.setSize(160 * LCDScreen.FACTOR + LCDScreen.FACTOR, 144 * LCDScreen.FACTOR + LCDScreen.FACTOR);
+		frame.setPreferredSize(new Dimension(160 * LCDScreen.FACTOR + LCDScreen.FACTOR, 144 * LCDScreen.FACTOR + LCDScreen.FACTOR));
 		LCDScreen screen = new LCDScreen(gpu, mmu);
 		frame.getContentPane().add(screen);
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -53,6 +53,7 @@ public class Emulator {
 		int frameCounter = 0;
 		int secondCounter = 0;
 		int time = 1000 / 60;
+		int totalCycles = 0;
 		//noinspection InfiniteLoopStatement
 		while (true) {
 			long t = System.currentTimeMillis();
@@ -63,6 +64,7 @@ public class Emulator {
 				//System.out.print(cpu.clock.getT() + " --> ");
 				cpu.execute();
 				int cycles = cpu.clock.getT() - oldCycles;
+				totalCycles += cycles;
 				cpu.updateTimers(cycles);
 				cpu.checkInterrupts();
 				gpu.update(cycles);
@@ -72,6 +74,7 @@ public class Emulator {
 			// System.out.println("cycles " + CYCLES_PER_FRAME + " delta " + delta);
 			secondCounter += delta;
 			frameCounter++;
+			screen.setCycles(totalCycles);
 			screen.setSeconds(secondCounter);
 			screen.setFrameCounter(frameCounter);
 			if (delta < 16) {

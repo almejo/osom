@@ -44,4 +44,8 @@ public abstract class Operation {
 		}
 		return delta;
 	}
+
+	void print(String string) {
+		System.out.println(cpu.PC +"] " + string);
+	}
 }
