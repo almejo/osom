@@ -6,7 +6,7 @@ import lombok.Getter;
 
 public abstract class Operation {
 
-	public static boolean debug = false;
+	public static boolean debug = true;
 
 	protected Z80Cpu cpu;
 
@@ -46,6 +46,19 @@ public abstract class Operation {
 	}
 
 	void print(String string) {
-		System.out.println(cpu.PC +"] " + string);
+		System.out.println(cpu.AF.debugStringHI() + " " + cpu.printFlags() + " " + cpu.BC.debugString() + " " + cpu.DE.debugString() + " " + cpu.HL.debugString() + " " + cpu.SP.debugString() + " " + cpu.PC.debugString() + " (cy: " + cpu.clock.getT()+ ") ppu:+0 |[00]0x"+cpu.PC.toHex() + ": " + getIntruction() + " " + string);
+	}
+
+	private String getIntruction() {
+		StringBuilder string= new StringBuilder(BitUtils.toHex2(this.code));
+		int len = 9 - string.length();
+		for (int i = 0; i < len; i++) {
+			string.append(" ");
+		}
+		return string.toString();
+	}
+
+	String hexAddr(int value) {
+		return BitUtils.toHex(value).toUpperCase() + "H";
 	}
 }

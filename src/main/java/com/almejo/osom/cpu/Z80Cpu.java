@@ -426,4 +426,12 @@ public class Z80Cpu {
 		return BitUtils.isBitSetted(requests, i) && BitUtils.isBitSetted(enabledInterrupts, i);
 	}
 
+	public String printFlags() {
+		return "F:" + (BitUtils.isBitSetted(AF.getLo(), FLAG_ZERO) ? "Z" : "-")
+				+ (BitUtils.isBitSetted(AF.getLo(), FLAG_SUBTRACT) ? "N" : "-")
+				+ (BitUtils.isBitSetted(AF.getLo(), FLAG_HALF_CARRY) ? "H" : "-")
+				+ (BitUtils.isBitSetted(AF.getLo(), FLAG_CARRY) ? "C" : "-")
+				;
+
+	}
 }

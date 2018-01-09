@@ -35,11 +35,24 @@ class Register {
 
 	@Override
 	public String toString() {
-		return this.name + "=0x" + toHex(this.getValue()) + " (b" + toBinary(this.getHi()) + " " + toBinary(this.getLo()) + ")";
+		return this.name + "=0x" + toHex(this.getValue());// + "(b" + toBinary(this.getHi()) + " " + toBinary(this.getLo()) + ")";
+	}
+
+
+	public String debugString() {
+		return this.name + ":" + toHex(this.getValue());
+	}
+
+	public String debugStringHI() {
+		return this.getName(false) + ":" + toHex2(this.getHi());
 	}
 
 	private String toHex(int value) {
 		return String.format("%4s", Integer.toHexString(value)).replace(" ", "0");
+	}
+
+	private String toHex2(int value) {
+		return String.format("%2s", Integer.toHexString(value)).replace(" ", "0");
 	}
 
 	private String toBinary(int value) {
@@ -64,5 +77,9 @@ class Register {
 		} else {
 			setHi(value);
 		}
+	}
+
+	public String toHex() {
+		return toHex(this.getValue());
 	}
 }

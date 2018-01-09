@@ -10,6 +10,8 @@ class OperationNOOP extends Operation {
 
 	@Override
 	void execute() {
-
+		if (debug) {
+			print("NOP");
+		}
 	}
 }

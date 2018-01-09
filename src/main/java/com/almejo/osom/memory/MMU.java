@@ -171,7 +171,7 @@ public class MMU {
 	}
 
 	private int getIOState() {
-		int state = (ram[IO_REGISTER] & 0xF0) | (0x08);
+		int state = 0xDF ;//(ram[IO_REGISTER] & 0xF0) | (0x08);
 		//	System.out.println(Integer.toHexString(state));
 		return state;
 	}

@@ -12,4 +12,13 @@ public class BitUtils {
 	public static boolean isBitSetted(int value, int flag) {
 		return (value & 1 << flag) > 0;
 	}
+
+	public static String toHex(int value) {
+		return String.format("%4s", Integer.toHexString(value)).replace(" ", "0");
+	}
+
+	public static String toHex2(int value) {
+		return String.format("%2s", Integer.toHexString(value)).replace(" ", "0");
+	}
+
 }

@@ -12,8 +12,10 @@ class OperationJP_nn extends Operation {
 	void execute() {
 		int value = mmu.getWord(cpu.PC.getValue() + 1);
 		if (debug) {
-			print("JP " + Integer.toHexString(value));
+			print("JP " + hexAddr(value));
 		}
 		cpu.PC.setValue(value);
 	}
+
+
 }
