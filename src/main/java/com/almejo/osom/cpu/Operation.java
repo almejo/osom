@@ -39,23 +39,51 @@ public abstract class Operation {
 	int toSignedByte(int val) {
 		int delta = val;
 		if (delta > 127) {
-			delta = -1 * (0xff - delta);
+			delta = -1 * (0xff - delta + 1);
 			// delta = -((~251+1)&0xff);
 		}
 		return delta;
 	}
 
 	void print(String string) {
-		System.out.println(cpu.AF.debugStringHI() + " " + cpu.printFlags() + " " + cpu.BC.debugString() + " " + cpu.DE.debugString() + " " + cpu.HL.debugString() + " " + cpu.SP.debugString() + " " + cpu.PC.debugString() + " (cy: " + cpu.clock.getT()+ ") ppu:+0 |[00]0x"+cpu.PC.toHex() + ": " + getIntruction() + " " + string);
+		printStruction(string, getIntruction());
+	}
+
+	private void printStruction(String string, String instruction) {
+		String output = cpu.AF.debugStringHI() + " " + cpu.printFlags() + " " + cpu.BC.debugString() + " " + cpu.DE.debugString() + " " + cpu.HL.debugString() + " " + cpu.SP.debugString() + " " + cpu.PC.debugString() + " (cy: " + cpu.clock.getT() + ") ppu:+0 |[00]0x" + cpu.PC.toHex() + ": " + instruction + " " + string;
+		System.out.println(output.toLowerCase());
+	}
+
+	void printWord(String string, int value) {
+		printStruction(string, getIntructionWord(value));
+	}
+
+	void printByte(String string, int value) {
+		printStruction(string, getIntructionByte(value));
 	}
 
 	private String getIntruction() {
-		StringBuilder string= new StringBuilder(BitUtils.toHex2(this.code));
-		int len = 9 - string.length();
+		return getStringSized(BitUtils.toHex2(this.code), 9);
+	}
+
+	private String getIntructionWord(int value) {
+		return getStringSized(BitUtils.toHex2(this.code)
+				+ " " + BitUtils.toHex2(value & 0xFF)
+				+ " " + BitUtils.toHex2((value & 0xFF00) >> 8), 9);
+	}
+
+	private String getIntructionByte(int value) {
+		return getStringSized(BitUtils.toHex2(this.code)
+				+ " " + BitUtils.toHex2(value & 0xFF), 9);
+	}
+
+	private String getStringSized(String string, int size) {
+		StringBuilder stringBuilder = new StringBuilder(string);
+		int len = size - string.length();
 		for (int i = 0; i < len; i++) {
-			string.append(" ");
+			stringBuilder.append(" ");
 		}
-		return string.toString();
+		return stringBuilder.toString();
 	}
 
 	String hexAddr(int value) {

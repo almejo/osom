@@ -1,5 +1,6 @@
 package com.almejo.osom.cpu;
 
+import com.almejo.osom.gpu.GPU;
 import com.almejo.osom.memory.MMU;
 import lombok.Setter;
 
@@ -60,6 +61,7 @@ public class Z80Cpu {
 	Register SP = new Register("SP");
 	public Clock clock = new Clock();
 	private int dividerCounter;
+	private GPU gpu;
 
 	public Z80Cpu(MMU mmu, int cycles) {
 		this.mmu = mmu;
@@ -433,5 +435,13 @@ public class Z80Cpu {
 				+ (BitUtils.isBitSetted(AF.getLo(), FLAG_CARRY) ? "C" : "-")
 				;
 
+	}
+
+	public void setGpu(GPU gpu) {
+		this.gpu = gpu;
+	}
+
+	public GPU getGpu() {
+		return gpu;
 	}
 }

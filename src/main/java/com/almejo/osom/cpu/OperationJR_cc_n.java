@@ -15,12 +15,13 @@ abstract class OperationJR_cc_n extends OperationConditional {
 	@Override
 	void execute() {
 		this.actionTaken = false;
-		int delta = toSignedByte(mmu.getByte(cpu.PC.getValue() + 1));
+		int value = mmu.getByte(cpu.PC.getValue() + 1);
+		int delta = toSignedByte(value);
 		if (debug) {
-			print("JR " + condition + " " + Integer.toHexString(delta));
+			printByte("JR " + condition + "," + toSignedByte(value), value);
 		}
 		if (shouldJump()) {
-			cpu.PC.setValue(cpu.PC.getValue() + (delta < 0 ? 1 + delta : 2 + delta));
+			cpu.PC.setValue(cpu.PC.getValue() + (delta < 0 ? 2 + delta : 2 + delta));
 			this.actionTaken = true;
 		}
 	}

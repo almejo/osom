@@ -31,6 +31,7 @@ public class Emulator {
 		Cartridge cartridge = new Cartridge(bytes);
 		mmu.addCartridge(cartridge);
 		Z80Cpu cpu = new Z80Cpu(mmu, CYCLES);
+		cpu.setGpu(gpu);
 		mmu.setCpu(cpu);
 		gpu.setCpu(cpu);
 		cpu.reset(bootBios);

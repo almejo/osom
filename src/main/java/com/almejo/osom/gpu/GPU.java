@@ -12,7 +12,7 @@ public class GPU {
 
 	private int line = 0;
 	private int clock = 0;
-	private int mode = H_BLANK;
+	public int mode = H_BLANK;
 	private static final int[][][] tiles = new int[512][8][8];
 	private static final int[][] pixels = new int[160][144];
 	private Z80Cpu cpu;

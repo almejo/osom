@@ -10,13 +10,10 @@ class OperationLDD_HL_A extends Operation {
 
 	@Override
 	void execute() {
-		int oldValue = mmu.getByte(cpu.HL.getValue());
-		mmu.setByte(cpu.HL.getValue(), cpu.AF.getHi());
-		int newValue = mmu.getByte(cpu.HL.getValue());
-
 		if (debug) {
-			print("LDD [" + cpu.HL.getName() + "], " + cpu.AF.getName().charAt(0) + "; " + Integer.toHexString(oldValue) + " ==> " + Integer.toHexString(newValue));
+			print("LDD (" + cpu.HL.getName() + ")," + cpu.AF.getName(false));
 		}
+		mmu.setByte(cpu.HL.getValue(), cpu.AF.getHi());
 		cpu.alu.dec(cpu.HL, false);
 	}
 }

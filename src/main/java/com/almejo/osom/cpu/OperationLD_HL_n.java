@@ -12,7 +12,7 @@ class OperationLD_HL_n extends Operation {
 	void execute() {
 		int value = mmu.getByte(cpu.PC.getValue() + 1);
 		if (debug) {
-			print("LD [" + cpu.HL.getName() + "], 0x" + Integer.toHexString(value));
+			printByte("LD (" + cpu.HL.getName() + ")," + value, value);
 		}
 		mmu.setByte(cpu.HL.getValue(), value);
 	}
