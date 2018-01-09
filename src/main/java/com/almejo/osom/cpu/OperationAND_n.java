@@ -13,7 +13,7 @@ class OperationAND_n extends Operation {
 	void execute() {
 		int value = mmu.getByte(cpu.PC.getValue() + 1);
 		if (debug) {
-			System.out.println("AND 0x" + Integer.toHexString(value));
+			print("AND 0x" + Integer.toHexString(value));
 		}
 		int result = (cpu.AF.getHi() & value) & 0xff;
 		cpu.AF.setHi(result);

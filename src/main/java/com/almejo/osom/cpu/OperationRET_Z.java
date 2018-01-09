@@ -13,7 +13,7 @@ class OperationRET_Z extends OperationConditional {
 		int address = cpu.popWordOnStack();
 		boolean jump = cpu.isFlagSetted(Z80Cpu.FLAG_ZERO);
 		if (debug) {
-			System.out.println("RET Z ;" + jump + " " + cpu.PC);
+			print("RET Z ;" + jump + " " + cpu.PC);
 		}
 		if (jump) {
 			cpu.PC.setValue(address);

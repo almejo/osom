@@ -16,7 +16,7 @@ abstract class OperationJP_cc_nn extends OperationConditional {
 		this.actionTaken = false;
 		int address = mmu.getWord(cpu.PC.getValue() + 1);
 		if (debug) {
-			System.out.println("JP " + condition + " 0x" + Integer.toHexString(address));
+			print("JP " + condition + " 0x" + Integer.toHexString(address));
 		}
 		if (shouldJump()) {
 			cpu.PC.setValue(address);

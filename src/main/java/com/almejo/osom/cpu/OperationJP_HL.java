@@ -12,7 +12,7 @@ class OperationJP_HL extends Operation {
 	void execute() {
 		int value = cpu.HL.getValue();
 		if (debug) {
-			System.out.println(cpu.PC.toString() + " ] JP [HL] ; 0x" + Integer.toHexString(value));
+			print(cpu.PC.toString() + " ] JP [HL] ; 0x" + Integer.toHexString(value));
 		}
 		cpu.PC.setValue(value);
 	}

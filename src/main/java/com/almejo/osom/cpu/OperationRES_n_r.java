@@ -20,7 +20,7 @@ abstract class OperationRES_n_r extends OperationCB {
 		int value = BitUtils.resetBit(oldValue, bit);
 		register.set(lo, value);
 		if (debug) {
-			System.out.println("RES " + bit + ", " + register.getName(lo));
+			print("RES " + bit + ", " + register.getName(lo));
 		}
 	}
 }

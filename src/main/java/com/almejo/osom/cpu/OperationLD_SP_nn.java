@@ -15,7 +15,7 @@ class OperationLD_SP_nn extends Operation {
 	void execute() {
 		int nn = mmu.getWord(cpu.PC.getValue() + 1);
 		if (debug) {
-			System.out.println("LD " + register.getName() + ", 0x" + Integer.toHexString(nn));
+			print("LD " + register.getName() + ", 0x" + Integer.toHexString(nn));
 		}
 		this.register.setValue(nn);
 	}

@@ -17,7 +17,7 @@ abstract class OperationADD_r extends Operation {
 	void execute() {
 		int n = lo ? register.getLo() : register.getHi();
 		if (debug) {
-			System.out.println("ADD A, " + register.getName(lo) + "; " + Integer.toHexString(n));
+			print("ADD A, " + register.getName(lo) + "; " + Integer.toHexString(n));
 		}
 		cpu.alu.addRegisterHI(cpu.AF, n);
 	}

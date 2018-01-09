@@ -12,7 +12,7 @@ class OperationLD_DE_nn extends Operation {
 	void execute() {
 		int nn = mmu.getWord(cpu.PC.getValue() + 1);
 		if (debug) {
-			System.out.println("LD " + cpu.DE.getName() + ", 0x" + Integer.toHexString(nn));
+			print("LD " + cpu.DE.getName() + ", 0x" + Integer.toHexString(nn));
 		}
 		cpu.DE.setValue(nn);
 	}

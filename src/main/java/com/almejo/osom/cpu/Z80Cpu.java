@@ -411,14 +411,14 @@ public class Z80Cpu {
 //		SP.dec(1);
 //		mmu.setByte(SP.getValue(), lo);
 		SP.dec(2);
-		// System.out.println("0x" + Integer.toHexString(PC.getValue()) + " push] 0x" + Integer.toHexString(value) + " " + SP.toString());
+		//System.out.println("0x" + Integer.toHexString(PC.getValue()) + " push] 0x" + Integer.toHexString(value) + " " + SP.toString());
 		mmu.setWord(SP.getValue(), value);
 	}
 
 	public int popWordOnStack() {
 		int value = mmu.getWord(SP.getValue());
 		SP.inc(2);
-		// System.out.println("0x" + Integer.toHexString(PC.getValue()) + " pop] 0x" + Integer.toHexString(value) + " " + SP.toString());
+		//System.out.println("0x" + Integer.toHexString(PC.getValue()) + " pop] 0x" + Integer.toHexString(value) + " " + SP.toString());
 		return value;
 	}
 

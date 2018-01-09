@@ -16,7 +16,7 @@ class OperationLDH_r_A extends Operation {
 	void execute() {
 		int value = lo ? register.getLo() : register.getHi();
 		if (debug) {
-			System.out.println("LD (0xFF00 + " + register.getName(lo) + "), A; 0x" + Integer.toHexString(0xff00 + value) + " <- 0x" + Integer.toHexString(cpu.AF.getHi()));
+			print("LD (0xFF00 + " + register.getName(lo) + "), A; 0x" + Integer.toHexString(0xff00 + value) + " <- 0x" + Integer.toHexString(cpu.AF.getHi()));
 		}
 		mmu.setByte(0xFF00 + value, cpu.AF.getHi());
 	}

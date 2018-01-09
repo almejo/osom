@@ -1,6 +1,5 @@
 package com.almejo.osom.memory;
 
-import com.almejo.osom.cpu.Operation;
 import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.gpu.GPU;
 
@@ -153,13 +152,13 @@ public class MMU {
 			return sprites[address - 0xFE00];
 		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
 			return 0;
-		}	else if (address == IO_REGISTER) {
+		} else if (address == IO_REGISTER) {
 			return getIOState();
 		} else if (address == LCD_LINE_COUNTER
 				|| address == LCD_CONTROLLER
 				|| address == INTERRUPT_CONTROLLER_ADDRESS) {
 			return ram[address];
-		} else if (address >= 0xFF00 && address <= 0xFF7F) {
+		} else if (address > 0xFF00 && address <= 0xFF7F) {
 			return 0; // io[address - 0xFF00];
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			return ram[address];
@@ -173,7 +172,7 @@ public class MMU {
 
 	private int getIOState() {
 		int state = (ram[IO_REGISTER] & 0xF0) | (0x08);
-	//	System.out.println(Integer.toHexString(state));
+		//	System.out.println(Integer.toHexString(state));
 		return state;
 	}
 

@@ -14,7 +14,7 @@ class OperationINC_rr extends Operation {
 	@Override
 	void execute() {
 		if (debug) {
-			System.out.println("INC " + register.getName());
+			print("INC " + register.getName());
 		}
 		register.inc(1);
 	}

@@ -17,7 +17,7 @@ abstract  class OperationLD_r_aHL extends Operation {
 	void execute() {
 		int value = mmu.getByte(cpu.HL.getValue());
 		if (debug) {
-			System.out.println("LD " + register.getName(lo) + ", [HL] ; " +  Integer.toHexString(value));
+			print("LD " + register.getName(lo) + ", [HL] ; " +  Integer.toHexString(value));
 		}
 		if (this.lo) {
 			register.setLo(value);

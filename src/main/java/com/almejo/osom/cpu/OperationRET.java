@@ -13,7 +13,7 @@ class OperationRET extends Operation {
 	void execute() {
 		cpu.PC.setValue(cpu.popWordOnStack());
 		if (debug) {
-			System.out.println("RET ;" + cpu.PC);
+			print("RET ;" + cpu.PC);
 		}
 	}
 }

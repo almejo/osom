@@ -15,7 +15,7 @@ class OperationSUB_r extends Operation {
 	@Override
 	void execute() {
 		if (debug) {
-			System.out.println("SUB " + register.getName(lo));
+			print("SUB " + register.getName(lo));
 		}
 		cpu.alu.subHI(cpu.AF, lo ? register.getLo() : register.getHi());
 	}

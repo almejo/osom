@@ -18,7 +18,7 @@ class OperationRL_r extends OperationCB {
 		int value = cpu.alu.rotateLeft(oldValue);
 		register.set(lo, value);
 		if (debug) {
-			System.out.println("RL " + register.getName(lo) + "; //  0x" + Integer.toHexString(oldValue) + "--> 0x" + Integer.toHexString(value));
+			print("RL " + register.getName(lo) + "; //  0x" + Integer.toHexString(oldValue) + "--> 0x" + Integer.toHexString(value));
 		}
 	}
 }

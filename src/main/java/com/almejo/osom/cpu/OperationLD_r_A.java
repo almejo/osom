@@ -17,7 +17,7 @@ class OperationLD_r_A extends Operation {
 	void execute() {
 		register.set(lo, cpu.AF.getHi());
 		if (debug) {
-			System.out.println("LD " + register.getName(lo) + ", A");
+			print("LD " + register.getName(lo) + ", A");
 		}
 
 	}

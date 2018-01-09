@@ -10,7 +10,7 @@ class OperationCPL extends Operation {
 	@Override
 	void execute() {
 		if (debug) {
-			System.out.println("CPL");
+			print("CPL");
 		}
 		cpu.AF.setHi((~cpu.AF.getHi()) & 0xFF);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);

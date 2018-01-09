@@ -17,7 +17,7 @@ abstract class OperationADD_HL_rr extends Operation {
 		int before = cpu.HL.getValue();
 		int value = register.getValue();
 		if (debug) {
-			System.out.println("ADD HL, " + register.getName() + "; 0x" + Integer.toHexString(before) + " + " + Integer.toHexString(value));
+			print("ADD HL, " + register.getName() + "; 0x" + Integer.toHexString(before) + " + " + Integer.toHexString(value));
 		}
 		int result = before + value;
 		cpu.HL.setValue(result & 0xFFFF);

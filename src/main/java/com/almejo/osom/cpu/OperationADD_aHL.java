@@ -12,7 +12,7 @@ class OperationADD_aHL extends Operation {
 	void execute() {
 		int n = mmu.getByte(cpu.HL.getValue());
 		if (debug) {
-			System.out.println("ADD A, [HL]; " + Integer.toHexString(n));
+			print("ADD A, [HL]; " + Integer.toHexString(n));
 		}
 		cpu.alu.addRegisterHI(cpu.AF, n);
 	}

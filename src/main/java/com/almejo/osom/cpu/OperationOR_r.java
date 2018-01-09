@@ -17,7 +17,7 @@ class OperationOR_r extends Operation {
 	@Override
 	void execute() {
 		if (debug) {
-			System.out.println("OR " + register.getName(lo));
+			print("OR " + register.getName(lo));
 		}
 		cpu.AF.setHi(cpu.alu.or(cpu.AF.getHi(), lo ? register.getLo() : register.getHi()));
 

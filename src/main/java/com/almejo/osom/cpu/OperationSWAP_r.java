@@ -18,7 +18,7 @@ class OperationSWAP_r extends OperationCB {
 		int value = lo ? register.getLo() : register.getHi();
 		value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);
 		if (debug) {
-			System.out.println("SWAP " + register.getName(lo));
+			print("SWAP " + register.getName(lo));
 		}
 		cpu.AF.setHi(value);
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, value == 0);

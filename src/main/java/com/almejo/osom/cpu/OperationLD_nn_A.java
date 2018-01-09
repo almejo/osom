@@ -13,7 +13,7 @@ class OperationLD_nn_A extends Operation {
 		int value = cpu.AF.getHi();
 		int address = mmu.getWord(cpu.PC.getValue() + 1);
 		if (debug) {
-			System.out.println("LD [0x" + Integer.toHexString(address) + "], A" + Integer.toHexString(value));
+			print("LD [0x" + Integer.toHexString(address) + "], A" + Integer.toHexString(value));
 		}
 		mmu.setByte(address, value);
 	}
