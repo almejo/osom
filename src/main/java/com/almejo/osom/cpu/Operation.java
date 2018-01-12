@@ -50,7 +50,17 @@ public abstract class Operation {
 	}
 
 	private void printStruction(String string, String instruction) {
-		String output = cpu.AF.debugStringHI() + " " + cpu.printFlags() + " " + cpu.BC.debugString() + " " + cpu.DE.debugString() + " " + cpu.HL.debugString() + " " + cpu.SP.debugString() + " " + cpu.PC.debugString() + " (cy: " + cpu.clock.getT() + ") ppu:+0 |[00]0x" + cpu.PC.toHex() + ": " + instruction + " " + string;
+		String output = cpu.AF.debugStringHI()
+				+ " " + cpu.printFlags()
+				+ " " + cpu.BC.debugString()
+				+ " " + cpu.DE.debugString()
+				+ " " + cpu.HL.debugString()
+				+ " " + cpu.SP.debugString()
+				+ " " + cpu.PC.debugString()
+				+ " (cy: " + cpu.clock.getT() + ")"
+				//+ " ppu:+" + cpu.getGpu().mode
+				+ " ppu:+0"
+				+ " |[00]0x" + cpu.PC.toHex() + ": " + instruction + " " + string;
 		System.out.println(output.toLowerCase());
 	}
 

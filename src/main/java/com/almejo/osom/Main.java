@@ -19,9 +19,9 @@ public class Main {
 		boolean bios = !commandLine.hasOption("no-bios");
 		String filename = commandLine.getOptionValue("rom");
 
-		System.out.println("Running emulator");
-		System.out.println("Bios enabled: " + bios);
-		System.out.println("Rom filename: " + filename);
+//		System.out.println("Running emulator");
+//		System.out.println("Bios enabled: " + bios);
+//		System.out.println("Rom filename: " + filename);
 		new Emulator().run(bios, filename);
 	}
 
