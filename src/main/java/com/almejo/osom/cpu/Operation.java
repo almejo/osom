@@ -62,7 +62,7 @@ public abstract class Operation {
 				//+ " ppu:+" + cpu.getGpu().mode
 				+ " ppu:+0"
 				+ " |[00]0x" + cpu.PC.toHex() + ": " + instruction + " " + string;
-		System.out.println(output.toLowerCase());
+		System.out.println(output);
 	}
 
 	void printWord(String string, int value) {
