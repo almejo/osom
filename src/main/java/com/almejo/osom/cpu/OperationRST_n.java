@@ -16,7 +16,6 @@ abstract class OperationRST_n extends Operation {
 		if (debug) {
 			print("RST 0x" + Integer.toHexString(n));
 		}
-		//cpu.pushWordOnStack(cpu.PC.getValue());
 		cpu.pushWordOnStack(cpu.PC.getValue() + getLength());
 		cpu.PC.setValue(n);
 	}

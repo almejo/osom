@@ -39,7 +39,8 @@ public abstract class Operation {
 	int toSignedByte(int val) {
 		int delta = val;
 		if (delta > 127) {
-			delta = -1 * (0xff - delta + 1);
+			delta = -1 * (0xff - delta);
+			// delta = -1 * (0xff - delta + 1);
 			// delta = -((~251+1)&0xff);
 		}
 		return delta;

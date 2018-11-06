@@ -21,7 +21,8 @@ abstract class OperationJR_cc_n extends OperationConditional {
 			printByte("JR " + condition + "," + toSignedByte(value), value);
 		}
 		if (shouldJump()) {
-			cpu.PC.setValue(cpu.PC.getValue() + (delta < 0 ? 2 + delta : 2 + delta));
+			cpu.PC.setValue(cpu.PC.getValue() + (delta < 0 ? 1 + delta : 2 + delta));
+			//cpu.PC.setValue(cpu.PC.getValue() + (delta < 0 ? 2 + delta : 2 + delta));
 			this.actionTaken = true;
 		}
 	}

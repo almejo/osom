@@ -16,6 +16,4 @@ class OperationJP_nn extends Operation {
 		}
 		cpu.PC.setValue(value);
 	}
-
-
 }

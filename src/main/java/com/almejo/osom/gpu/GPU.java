@@ -10,7 +10,7 @@ public class GPU {
 	private static final int SPRITES = 2;
 	private static final int GRAPHICS = 3;
 
-	private int line = 1;
+	private int line = 0;
 	private int clock = 0;
 	public int mode = H_BLANK;
 	private static final int[][][] tiles = new int[512][8][8];
@@ -31,7 +31,7 @@ public class GPU {
 
 	public void setMmu(MMU mmu) {
 		this.mmu = mmu;
-		mmu.setScanline(line);
+		mmu.setScanline(1);
 	}
 
 	public void update(int cycles) {
@@ -39,26 +39,72 @@ public class GPU {
 			return;
 		}
 		clock += cycles;
+		switch (mode) {
+			case H_BLANK:
+				if (clock >= 204) {
+					clock = 0;
+					line++;
+					mmu.setScanline(line + 1);
+					if (line == 144) {
+						mode = V_BLANK;
+						cpu.requestInterrupt(Z80Cpu.INTERRUPT_ADDRESS_V_BLANK);
+						drawScreen();
+					} else {
+						mode = SPRITES;
+					}
+				}
+				break;
+			case V_BLANK:
+//				if (clock >= 456 * 144) {
+//					clock = 0;
+//					line = 0;
+//					mmu.setScanline(1);
+//					mode = SPRITES;
+//				}
+				if (clock >= 456) {
+					clock = 0;
+					line++;
+					mmu.setScanline(line + 1);
+					if (line > 153) {
+						mode = SPRITES;
+						line = 0;
+						mmu.setScanline(line + 1);
+					}
+				}
+				break;
+			case SPRITES:
+				if (clock >= 80) {
+					clock = 0;
+					mode = GRAPHICS;
+				}
+				break;
+			case GRAPHICS:
+				if (clock >= 172) {
+					clock = 0;
+					mode = H_BLANK;
+					drawLine();
+				}
+		}
 
-		if (clock >= 456) {
-			clock = 0;
+//		if (clock >= 456) {
+//			clock = 0;
 			//System.out.println(clock + "]line: " + line);
 
-			if (line < 145) {
-				drawLine();
-				if (line == 144) {
-					cpu.requestInterrupt(Z80Cpu.INTERRUPT_ADDRESS_V_BLANK);
-				}
-				line++;
-				mmu.setScanline(line);
-			} else if (line >= 145 && line < 154) {
-				mmu.setScanline(0);
-				line++;
-			} else {
-				line = 1;
-				mmu.setScanline(line);
-			}
-		}
+//			if (line < 145) {
+//				drawLine();
+//				if (line == 144) {
+//					cpu.requestInterrupt(Z80Cpu.INTERRUPT_ADDRESS_V_BLANK);
+//				}
+//				line++;
+//				mmu.setScanline(line);
+//			} else if (line >= 145 && line < 154) {
+//				mmu.setScanline(0);
+//				line++;
+//			} else {
+//				line = 1;
+//				mmu.setScanline(line);
+//			}
+//		}
 //		switch (mode) {
 //			case H_BLANK:
 //				if (clock >= 204) {
