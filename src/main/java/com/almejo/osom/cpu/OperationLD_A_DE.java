@@ -16,4 +16,9 @@ class OperationLD_A_DE extends Operation {
 		}
 		cpu.AF.setHi(value);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD " + cpu.AF.getName(false) + ", (" + cpu.DE.getName() + ")";
+	}
 }

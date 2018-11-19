@@ -16,4 +16,9 @@ class OperationCP_n extends Operation {
 		}
 		cpu.alu.cpHI(cpu.AF, n);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "CP " + BitUtils.toHex2(ram[base + 1]);
+	}
 }

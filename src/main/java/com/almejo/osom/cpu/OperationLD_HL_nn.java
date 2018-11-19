@@ -16,4 +16,9 @@ class OperationLD_HL_nn extends Operation {
 		}
 		cpu.HL.setValue(value);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD " + cpu.HL.getName() + "," + toWord(ram[base + 2], ram[base + 1]);
+	}
 }

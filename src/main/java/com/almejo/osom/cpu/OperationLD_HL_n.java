@@ -16,4 +16,9 @@ class OperationLD_HL_n extends Operation {
 		}
 		mmu.setByte(cpu.HL.getValue(), value);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD (" + cpu.HL.getName() + ")," + Integer.toHexString(ram[base + 1]);
+	}
 }

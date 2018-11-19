@@ -18,4 +18,9 @@ class OperationPOP_rr extends Operation {
 		}
 		register.setValue(cpu.popWordOnStack());
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "POP " + register.getName();
+	}
 }

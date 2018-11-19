@@ -17,4 +17,9 @@ class OperationLD_A_HLI extends Operation {
 		cpu.AF.setHi(value);
 		cpu.HL.inc(1);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD A, [" + cpu.HL.getName() + "I]";
+	}
 }

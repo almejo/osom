@@ -17,4 +17,9 @@ class OperationLD_A_ann extends Operation {
 			print("LD A, [0x" + Integer.toHexString(address) + "] ; 0x" + Integer.toHexString(value));
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD A, [0x" + toWord(ram[base + 2], ram[base + 1]) + "]";
+	}
 }

@@ -17,4 +17,10 @@ class OperationLD_nn_A extends Operation {
 		}
 		mmu.setByte(address, value);
 	}
+
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD [0x" + toWord(ram[base + 2], ram[base + 1]) + "], A";
+	}
 }

@@ -16,4 +16,9 @@ class OperationADD_aHL extends Operation {
 		}
 		cpu.alu.addRegisterHI(cpu.AF, n);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "ADD A, [HL]";
+	}
 }

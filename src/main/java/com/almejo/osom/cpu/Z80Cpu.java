@@ -23,13 +23,10 @@ public class Z80Cpu {
 
 	private static int timerCounter = 1024; // Default. 4096 hz
 	private static int TIMER_ENABLED_BIT = 2;
+	public final OperationTable operationTable;
 
 	private boolean interruptionsEnabled = false;
 	private static int PREFIX_CB = 0xcb;
-
-	private HashMap<Integer, Operation> operations = new HashMap<>();
-
-	private HashMap<Integer, Operation> operationsCB = new HashMap<>();
 
 	static {
 		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_V_BLANK, INTERRUPT_ADDRESS_V_BLANK);
@@ -73,122 +70,126 @@ public class Z80Cpu {
 		registers.add(PC);
 		registers.add(SP);
 		alu = new ALU(this);
-		addOpcode(new OperationADD_A(this, this.mmu));
-		addOpcode(new OperationAND_n(this, this.mmu));
-		addOpcode(new OperationAND_A(this, this.mmu));
-		addOpcode(new OperationAND_C(this, this.mmu));
-		addOpcode(new OperationADD_aHL(this, this.mmu));
-		addOpcode(new OperationADD_HL_DE(this, this.mmu));
-		addOpcode(new OperationNOOP(this, this.mmu));
-		addOpcode(new OperationJP_nn(this, this.mmu));
-		addOpcode(new OperationJP_Z_nn(this, this.mmu));
-		addOpcode(new OperationJP_HL(this, this.mmu));
-		addOpcode(new OperationXOR_A(this, this.mmu));
-		addOpcode(new OperationXOR_C(this, this.mmu));
-		addOpcode(new OperationOR_B(this, this.mmu));
-		addOpcode(new OperationOR_C(this, this.mmu));
-		addOpcode(new OperationLD_HL_nn(this, this.mmu));
-		addOpcode(new OperationLD_BC_nn(this, this.mmu));
+		operationTable = new OperationTable();
+		operationTable.addOpcode(new OperationDAA(this, this.mmu));
+		operationTable.addOpcode(new OperationADC_A_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationADD_A(this, this.mmu));
+		operationTable.addOpcode(new OperationAND_n(this, this.mmu));
+		operationTable.addOpcode(new OperationAND_A(this, this.mmu));
+		operationTable.addOpcode(new OperationAND_B(this, this.mmu));
+		operationTable.addOpcode(new OperationAND_C(this, this.mmu));
+		operationTable.addOpcode(new OperationADD_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationADD_HL_DE(this, this.mmu));
+		operationTable.addOpcode(new OperationNOOP(this, this.mmu));
+		operationTable.addOpcode(new OperationJP_nn(this, this.mmu));
+		operationTable.addOpcode(new OperationJP_Z_nn(this, this.mmu));
+		operationTable.addOpcode(new OperationJP_HL(this, this.mmu));
+		operationTable.addOpcode(new OperationXOR_A(this, this.mmu));
+		operationTable.addOpcode(new OperationXOR_C(this, this.mmu));
+		operationTable.addOpcode(new OperationOR_B(this, this.mmu));
+		operationTable.addOpcode(new OperationOR_C(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_HL_nn(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_BC_nn(this, this.mmu));
 
-		addOpcode(new OperationLDD_HL_A(this, this.mmu));
-		addOpcode(new OperationLD_SP_nn(this, this.mmu));
-		addOpcode(new OperationLD_A_n(this, this.mmu));
-		addOpcode(new OperationLD_B_n(this, this.mmu));
-		addOpcode(new OperationLD_C_n(this, this.mmu));
-		addOpcode(new OperationLD_D_n(this, this.mmu));
-		addOpcode(new OperationLD_E_n(this, this.mmu));
-		addOpcode(new OperationLD_L_n(this, this.mmu));
-		addOpcode(new OperationLD_HL_n(this, this.mmu));
-		addOpcode(new OperationLD_A_ann(this, this.mmu));
+		operationTable.addOpcode(new OperationLDD_HL_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_SP_nn(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_B_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_C_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_D_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_E_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_L_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_HL_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_ann(this, this.mmu));
 
-		addOpcode(new OperationLD_A_aHL(this, this.mmu));
-		addOpcode(new OperationLD_D_aHL(this, this.mmu));
-		addOpcode(new OperationLD_E_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_B_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_D_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_E_aHL(this, this.mmu));
 
+		operationTable.addOpcode(new OperationDEC_B(this, this.mmu));
+		operationTable.addOpcode(new OperationDEC_BC(this, this.mmu));
+		operationTable.addOpcode(new OperationDEC_C(this, this.mmu));
+		operationTable.addOpcode(new OperationDEC_D(this, this.mmu));
+		operationTable.addOpcode(new OperationDEC_E(this, this.mmu));
+		operationTable.addOpcode(new OperationDEC_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationJR_NZ_n(this, this.mmu));
+		operationTable.addOpcode(new OperationJR_Z_n(this, this.mmu));
+		operationTable.addOpcode(new OperationJR_n(this, this.mmu));
+		operationTable.addOpcode(new OperationDI(this, this.mmu));
+		operationTable.addOpcode(new OperationEI(this, this.mmu));
+		operationTable.addOpcode(new OperationCPL(this, this.mmu));
+		operationTable.addOpcode(new OperationLDH_n_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLDH_A_n(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_HLI(this, this.mmu));
 
-		addOpcode(new OperationDEC_B(this, this.mmu));
-		addOpcode(new OperationDEC_BC(this, this.mmu));
-		addOpcode(new OperationDEC_C(this, this.mmu));
-		addOpcode(new OperationDEC_D(this, this.mmu));
-		addOpcode(new OperationDEC_E(this, this.mmu));
-		addOpcode(new OperationDEC_aHL(this, this.mmu));
-		addOpcode(new OperationJR_NZ_n(this, this.mmu));
-		addOpcode(new OperationJR_Z_n(this, this.mmu));
-		addOpcode(new OperationJR_n(this, this.mmu));
-		addOpcode(new OperationDI(this, this.mmu));
-		addOpcode(new OperationEI(this, this.mmu));
-		addOpcode(new OperationCPL(this, this.mmu));
-		addOpcode(new OperationLDH_n_A(this, this.mmu));
-		addOpcode(new OperationLDH_A_n(this, this.mmu));
-		addOpcode(new OperationLD_A_HLI(this, this.mmu));
+		operationTable.addOpcode(new OperationCP_HL(this, this.mmu));
+		operationTable.addOpcode(new OperationCP_n(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_7_H(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_2_B(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_0_C(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_0_D(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_3_B(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_4_B(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_5_B(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_7_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLDH_C_A(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_A(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_B(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_C(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_E(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_H(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_L(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_BC(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_DE(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_HL(this, this.mmu));
+		operationTable.addOpcode(new OperationINC_aHL(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_HL_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_DE_A(this, this.mmu));
 
-		addOpcode(new OperationCP_HL(this, this.mmu));
-		addOpcode(new OperationCP_n(this, this.mmu));
-		addOpcode(new OperationBIT_7_H(this, this.mmu));
-		addOpcode(new OperationBIT_0_C(this, this.mmu));
-		addOpcode(new OperationLDH_C_A(this, this.mmu));
-		addOpcode(new OperationINC_A(this, this.mmu));
-		addOpcode(new OperationINC_B(this, this.mmu));
-		addOpcode(new OperationINC_C(this, this.mmu));
-		addOpcode(new OperationINC_E(this, this.mmu));
-		addOpcode(new OperationINC_H(this, this.mmu));
-		addOpcode(new OperationINC_L(this, this.mmu));
-		addOpcode(new OperationINC_BC(this, this.mmu));
-		addOpcode(new OperationINC_DE(this, this.mmu));
-		addOpcode(new OperationINC_HL(this, this.mmu));
-		addOpcode(new OperationINC_aHL(this, this.mmu));
-		addOpcode(new OperationLD_HL_A(this, this.mmu));
-		addOpcode(new OperationLD_DE_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_DE_nn(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_DE(this, this.mmu));
+		operationTable.addOpcode(new OperationCALL_nn(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_B_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_C_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_D_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_E_A(this, this.mmu));
 
+		operationTable.addOpcode(new OperationLD_H_A(this, this.mmu));
+		operationTable.addOpcode(new OperationPUSH_AF(this, this.mmu));
+		operationTable.addOpcode(new OperationPUSH_BC(this, this.mmu));
+		operationTable.addOpcode(new OperationPUSH_DE(this, this.mmu));
+		operationTable.addOpcode(new OperationPUSH_HL(this, this.mmu));
+		operationTable.addOpcode(new OperationRL_C(this, this.mmu));
+		operationTable.addOpcode(new OperationRLA(this, this.mmu));
+		operationTable.addOpcode(new OperationPOP_AF(this, this.mmu));
+		operationTable.addOpcode(new OperationPOP_BC(this, this.mmu));
+		operationTable.addOpcode(new OperationPOP_DE(this, this.mmu));
+		operationTable.addOpcode(new OperationPOP_HL(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_HLI_A(this, this.mmu));
+		operationTable.addOpcode(new OperationRET(this, this.mmu));
+		operationTable.addOpcode(new OperationRETI(this, this.mmu));
+		operationTable.addOpcode(new OperationRET_Z(this, this.mmu));
+		operationTable.addOpcode(new OperationRET_NZ(this, this.mmu));
+		operationTable.addOpcode(new OperationRET_NC(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_B(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_C(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_D(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_E(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_H(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_A_L(this, this.mmu));
 
-		addOpcode(new OperationLD_DE_nn(this, this.mmu));
-		addOpcode(new OperationLD_A_DE(this, this.mmu));
-		addOpcode(new OperationCALL_nn(this, this.mmu));
-		addOpcode(new OperationLD_B_A(this, this.mmu));
-		addOpcode(new OperationLD_C_A(this, this.mmu));
-		addOpcode(new OperationLD_D_A(this, this.mmu));
-		addOpcode(new OperationLD_E_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_nn_A(this, this.mmu));
+		operationTable.addOpcode(new OperationDEC_A(this, this.mmu));
+		operationTable.addOpcode(new OperationSUB_B(this, this.mmu));
+		operationTable.addOpcode(new OperationSWAP_A(this, this.mmu));
 
-		addOpcode(new OperationLD_H_A(this, this.mmu));
-		addOpcode(new OperationPUSH_AF(this, this.mmu));
-		addOpcode(new OperationPUSH_BC(this, this.mmu));
-		addOpcode(new OperationPUSH_DE(this, this.mmu));
-		addOpcode(new OperationPUSH_HL(this, this.mmu));
-		addOpcode(new OperationRL_C(this, this.mmu));
-		addOpcode(new OperationRLA(this, this.mmu));
+		operationTable.addOpcode(new OperationRST_28(this, this.mmu));
+		operationTable.addOpcode(new OperationRES_0_A(this, this.mmu));
 
-		addOpcode(new OperationPOP_AF(this, this.mmu));
-		addOpcode(new OperationPOP_BC(this, this.mmu));
-		addOpcode(new OperationPOP_DE(this, this.mmu));
-		addOpcode(new OperationPOP_HL(this, this.mmu));
-		addOpcode(new OperationLD_HLI_A(this, this.mmu));
-		addOpcode(new OperationRET(this, this.mmu));
-		addOpcode(new OperationRETI(this, this.mmu));
-		addOpcode(new OperationRET_Z(this, this.mmu));
-		addOpcode(new OperationRET_NZ(this, this.mmu));
-		addOpcode(new OperationLD_A_B(this, this.mmu));
-		addOpcode(new OperationLD_A_C(this, this.mmu));
-		// addOpcode(new OperationLD_A_D(this, this.mmu));
-		addOpcode(new OperationLD_A_E(this, this.mmu));
-		addOpcode(new OperationLD_A_H(this, this.mmu));
-		addOpcode(new OperationLD_A_L(this, this.mmu));
-
-		addOpcode(new OperationLD_nn_A(this, this.mmu));
-		addOpcode(new OperationDEC_A(this, this.mmu));
-		addOpcode(new OperationSUB_B(this, this.mmu));
-		addOpcode(new OperationSWAP_A(this, this.mmu));
-
-		addOpcode(new OperationRST_28(this, this.mmu));
-		addOpcode(new OperationRES_0_A(this, this.mmu));
+		//operationTable.addOpcode(new OperationLD_L_E(this, this.mmu));
 	}
 
-	private void addOpcode(Operation operation) {
-		if (operation instanceof OperationCB) {
-			operationsCB.put(operation.code, operation);
-			return;
-		}
-		operations.put(operation.code, operation);
-	}
 
 	public void reset(boolean bootBios) {
 		PC.setValue(bootBios ? 0x0 : 0x100);
@@ -200,7 +201,7 @@ public class Z80Cpu {
 		resetMemory();
 	}
 
-	public void execute() {
+	public void execute() throws OperationNotFoundException {
 		Operation operation;
 		int operationCode = mmu.getByte(PC.getValue());
 		if (PC.getValue() == 0x21b) {
@@ -212,20 +213,15 @@ public class Z80Cpu {
 //			mmu.printVRAM();
 //		}
 
-		if (operationCode == PREFIX_CB) {
-			//System.out.print("0xcb-");
-			PC.inc(1);
-			operationCode = mmu.getByte(PC.getValue());
-			if (operationsCB.containsKey(operationCode)) {
-				operation = operationsCB.get(operationCode);
+			if (operationCode == PREFIX_CB) {
+				//System.out.print("0xcb-");
+				PC.inc(1);
+				operationCode = mmu.getByte(PC.getValue());
+				operation = operationTable.getOperationCB(operationCode);
 			} else {
-				throw new RuntimeException("code not found 0xcb 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
+				operation = operationTable.getOperation(operationCode);
 			}
-		} else if (operations.containsKey(operationCode)) {
-			operation = operations.get(operationCode);
-		} else {
-			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
-		}
+
 		if (printLine) {
 			System.out.println("0x" + Integer.toHexString(PC.getValue()));
 		}
@@ -234,9 +230,9 @@ public class Z80Cpu {
 //		if (PC.getValue() == 0x393) {
 //			Operation.debug = true;
 //		}
-		if (PC.getValue() == 0x3a0) {
-			Operation.debug = true;
-		}
+//		if (PC.getValue() == 0x3a0) {
+//			Operation.debug = true;
+//		}
 
 //		if (Operation.debug) {
 //			System.out.print("0x" + Integer.toHexString(PC.getValue()) + "] OPCODE 0x" + Integer.toHexString(operationCode) + " ");
@@ -257,7 +253,6 @@ public class Z80Cpu {
 		}
 //		printState(e);
 	}
-
 
 	private void printState() {
 		StringBuilder builder = new StringBuilder();

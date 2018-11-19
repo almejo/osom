@@ -19,4 +19,9 @@ abstract class OperationRST_n extends Operation {
 		cpu.pushWordOnStack(cpu.PC.getValue() + getLength());
 		cpu.PC.setValue(n);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "RST " + Integer.toHexString(n) + "h";
+	}
 }

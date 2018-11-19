@@ -24,6 +24,10 @@ abstract class OperationADD_HL_rr extends Operation {
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0xFFF) + (before & 0xFFF) > 0xFFF);
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, result > 0xFFFF);
+	}
 
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "ADD HL, " + register.getName();
 	}
 }

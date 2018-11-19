@@ -3,10 +3,11 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 import lombok.Getter;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public abstract class Operation {
 
-	public static boolean debug = true;
+	public static boolean debug = false;
 
 	protected Z80Cpu cpu;
 
@@ -35,6 +36,10 @@ public abstract class Operation {
 	}
 
 	abstract void execute();
+
+	public String decoded(int[] ram, int base) {
+		throw new NotImplementedException();
+	}
 
 	int toSignedByte(int val) {
 		int delta = val;
@@ -99,5 +104,9 @@ public abstract class Operation {
 
 	String hexAddr(int value) {
 		return BitUtils.toHex(value).toUpperCase() + "H";
+	}
+
+	String toWord(int value, int value1) {
+		return BitUtils.toHex2(value) + BitUtils.toHex2(value1);
 	}
 }

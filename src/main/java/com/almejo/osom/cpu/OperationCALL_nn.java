@@ -17,4 +17,9 @@ class OperationCALL_nn extends Operation {
 		cpu.pushWordOnStack(cpu.PC.getValue() + getLength());
 		cpu.PC.setValue(nn);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "CALL l" + toWord(ram[base + 2], ram[base + 1]);
+	}
 }

@@ -18,4 +18,9 @@ class OperationRETI extends Operation {
 			print("RETI ;" + Integer.toHexString(oldValue) + " -> " + Integer.toHexString(cpu.PC.getValue()));
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "RETI";
+	}
 }

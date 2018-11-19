@@ -16,4 +16,9 @@ class OperationRET extends Operation {
 			print("RET ;" + cpu.PC);
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "ret";
+	}
 }

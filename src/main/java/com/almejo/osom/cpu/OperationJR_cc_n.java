@@ -29,5 +29,9 @@ abstract class OperationJR_cc_n extends OperationConditional {
 
 	abstract boolean shouldJump();
 
-
+	@Override
+	public String decoded(int[] ram, int base) {
+		int value = ram[base + 1];
+		return "JR " + condition + "," + toSignedByte(value);
+	}
 }

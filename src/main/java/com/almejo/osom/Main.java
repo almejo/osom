@@ -18,27 +18,35 @@ public class Main {
 
 		boolean bios = !commandLine.hasOption("no-bios");
 		String filename = commandLine.getOptionValue("rom");
-
+		String dataFile = commandLine.getOptionValue("data");
 //		System.out.println("Running emulator");
 //		System.out.println("Bios enabled: " + bios);
 //		System.out.println("Rom filename: " + filename);
-		new Emulator().run(bios, filename);
+		new Emulator().run(bios, filename, dataFile);
 	}
 
 
 	private static CommandLine parseCommandArguments(String[] args) throws ParseException {
-		return new DefaultParser().parse(new Options().addOption(Option
-				.builder("r")
-				.argName("rom")
-				.hasArg()
-				.longOpt("rom")
-				.desc("rom to load")
-				.build())
+		return new DefaultParser().parse(new Options()
+				.addOption(Option
+						.builder("r")
+						.argName("rom")
+						.hasArg()
+						.longOpt("rom")
+						.desc("rom to load")
+						.build())
 				.addOption(Option
 						.builder("b")
 						.argName("no-bios")
 						.longOpt("no-bios")
 						.desc("do not boot the bios")
+						.build())
+				.addOption(Option
+						.builder("d")
+						.argName("data")
+						.hasArg()
+						.longOpt("data")
+						.desc("data file for debugging")
 						.build()), args);
 	}
 }

@@ -16,4 +16,8 @@ class OperationDI extends Operation {
 		cpu.setInterruptionsEnabled(false);
 	}
 
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "DI";
+	}
 }

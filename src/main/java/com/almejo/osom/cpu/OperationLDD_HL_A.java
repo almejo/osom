@@ -16,4 +16,9 @@ class OperationLDD_HL_A extends Operation {
 		mmu.setByte(cpu.HL.getValue(), cpu.AF.getHi());
 		cpu.alu.dec(cpu.HL, false);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LDD (" + cpu.HL.getName() + ")," + cpu.AF.getName(false);
+	}
 }

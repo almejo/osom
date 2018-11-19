@@ -15,4 +15,9 @@ class OperationXOR_A extends Operation {
 		}
 		cpu.AF.setHi(cpu.alu.xor(cpu.AF.getHi(), cpu.AF.getHi()));
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "XOR A";
+	}
 }

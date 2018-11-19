@@ -20,4 +20,9 @@ class OperationLD_A_r extends Operation {
 			print("LD A, " + register.getName(lo));
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD A, " + register.getName(lo);
+	}
 }

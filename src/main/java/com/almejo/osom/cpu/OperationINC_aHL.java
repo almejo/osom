@@ -24,4 +24,8 @@ class OperationINC_aHL extends Operation {
 		cpu.alu.updateIncFlags(value, 1);
 	}
 
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "INC [" + cpu.HL.getName() + "]";
+	}
 }

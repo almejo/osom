@@ -26,5 +26,8 @@ abstract class OperationJP_cc_nn extends OperationConditional {
 
 	abstract boolean shouldJump();
 
-
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "JP " + condition + " 0x" + toWord(ram[base + 2], ram[base + 1]);
+	}
 }

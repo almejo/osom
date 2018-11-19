@@ -24,4 +24,9 @@ class OperationDEC_aHL extends Operation {
 		}
 		cpu.alu.updateDecFlags(value, 1);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "DEC [" + cpu.HL.getName() + "]";
+	}
 }

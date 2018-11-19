@@ -27,4 +27,9 @@ abstract class OperationAND_r extends Operation {
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
 
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "AND " + register.getName(lo);
+	}
 }

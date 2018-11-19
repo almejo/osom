@@ -19,4 +19,9 @@ class OperationLD_SP_nn extends Operation {
 		}
 		this.register.setValue(nn);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD " + register.getName() + ", 0x" + toWord(ram[base + 2], ram[base + 1]) ;
+	}
 }

@@ -18,4 +18,9 @@ class OperationPUSH_rr extends Operation {
 		}
 		cpu.pushWordOnStack(register.getValue());
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "PUSH " + register.getName();
+	}
 }

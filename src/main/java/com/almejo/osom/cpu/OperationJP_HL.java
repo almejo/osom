@@ -16,4 +16,9 @@ class OperationJP_HL extends Operation {
 		}
 		cpu.PC.setValue(value);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "JP [HL]";
+	}
 }

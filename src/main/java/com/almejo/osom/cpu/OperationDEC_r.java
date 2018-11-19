@@ -23,4 +23,9 @@ class OperationDEC_r extends Operation {
 			cpu.alu.decHI(register);
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "DEC " + register.getName(lo);
+	}
 }

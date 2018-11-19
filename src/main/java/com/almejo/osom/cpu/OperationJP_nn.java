@@ -16,4 +16,9 @@ class OperationJP_nn extends Operation {
 		}
 		cpu.PC.setValue(value);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "JP l" + toWord(ram[base + 2], ram[base + 1]);
+	}
 }

@@ -19,4 +19,9 @@ class OperationRET_NZ extends OperationConditional {
 			cpu.PC.setValue(address);
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "RET NZ";
+	}
 }

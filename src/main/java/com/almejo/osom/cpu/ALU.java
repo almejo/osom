@@ -1,6 +1,6 @@
 package com.almejo.osom.cpu;
 
-public class ALU {
+class ALU {
 	private Z80Cpu cpu;
 
 	ALU(Z80Cpu cpu) {
@@ -16,8 +16,7 @@ public class ALU {
 		return value;
 	}
 
-
-	public int or(int a, int b) {
+	int or(int a, int b) {
 		int value = a | b;
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, value == 0);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, false);
@@ -26,7 +25,7 @@ public class ALU {
 		return value;
 	}
 
-	public void dec(Register register, boolean alterFlags) {
+	void dec(Register register, boolean alterFlags) {
 		int oldValue = register.getValue();
 		register.setValue(register.getValue() - 1);
 		if (alterFlags) {
@@ -73,7 +72,7 @@ public class ALU {
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
 	}
 
-	public void addRegisterHI(Register register, int n) {
+	void addRegisterHI(Register register, int n) {
 		int oldValue = register.getHi();
 		register.setHi(register.getHi() + n);
 		updateAddFlags(oldValue, n);
@@ -100,13 +99,13 @@ public class ALU {
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, value < n);
 	}
 
-	public void setBITFlags(boolean equalsZero) {
+	void setBITFlags(boolean equalsZero) {
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, equalsZero);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, true);
 	}
 
-	public int rotateLeft(int oldValue) {
+	int rotateLeft(int oldValue) {
 		int value = (oldValue << 1) & 0xff;
 		if (cpu.isFlagSetted(Z80Cpu.FLAG_CARRY)) {
 			value = BitUtils.setBit(value, 0);

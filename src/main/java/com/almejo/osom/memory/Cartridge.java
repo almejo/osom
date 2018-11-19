@@ -1,6 +1,11 @@
 package com.almejo.osom.memory;
 
+import lombok.Getter;
+
+import java.util.List;
+
 public class Cartridge {
+	@Getter
 	private int[] bytes;
 	private String title;
 
@@ -19,7 +24,7 @@ public class Cartridge {
 		return builder.toString();
 	}
 
-	int getByte(int address) {
+	public int getByte(int address) {
 		return bytes[address];
 	}
 

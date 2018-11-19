@@ -15,4 +15,9 @@ class OperationEI extends Operation {
 		}
 		cpu.setInterruptionsEnabled(true);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "EI";
+	}
 }

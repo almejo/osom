@@ -21,6 +21,10 @@ class OperationAND_n extends Operation {
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, true);
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
+	}
 
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "AND 0x" + Integer.toHexString(ram[base + 1]);
 	}
 }

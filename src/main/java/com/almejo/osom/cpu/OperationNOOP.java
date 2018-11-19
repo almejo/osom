@@ -14,4 +14,8 @@ class OperationNOOP extends Operation {
 			print("NOP");
 		}
 	}
+
+	public String decoded(int[] ram, int base){
+		return ".db 00";
+	}
 }

@@ -1,34 +1,30 @@
 package com.almejo.osom;
 
 import com.almejo.osom.cpu.Operation;
+import com.almejo.osom.cpu.OperationNotFoundException;
 import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.gpu.GPU;
 import com.almejo.osom.memory.Cartridge;
 import com.almejo.osom.memory.MMU;
 
 import javax.swing.*;
-import javax.swing.text.MutableAttributeSet;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Emulator {
+class Emulator {
 	private static final int CYCLES = 4194304;
 	private static final int CYCLES_PER_FRAME = CYCLES / 60;
 
-	public void run(boolean bootBios, String file) throws IOException {
+	void run(boolean bootBios, String file, String dataFile) throws IOException {
 
-		Path path = Paths.get(file);
 		GPU gpu = new GPU();
-		byte[] bytes = Files.readAllBytes(path);
 		MMU mmu = new MMU(bootBios, gpu);
 		gpu.setMmu(mmu);
-
-		Cartridge cartridge = new Cartridge(bytes);
+		Cartridge cartridge = new Cartridge(Files.readAllBytes(Paths.get(file)));
 		mmu.addCartridge(cartridge);
 		Z80Cpu cpu = new Z80Cpu(mmu, CYCLES);
 		cpu.setGpu(gpu);
@@ -43,6 +39,7 @@ public class Emulator {
 		JButton button = new JButton();
 		frame.getContentPane().add(screen, BorderLayout.CENTER);
 		frame.getContentPane().add(button, BorderLayout.SOUTH);
+		frame.getContentPane().add(new CodeViewer(cpu.operationTable, cartridge, Files.readAllLines(Paths.get(dataFile))));
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.pack();
 		frame.setVisible(true);
@@ -76,7 +73,11 @@ public class Emulator {
 			while (cyclesToScreen > 0) {
 				int oldCycles = cpu.clock.getT();
 				//System.out.print(cpu.clock.getT() + " --> ");
-				cpu.execute();
+				try {
+					cpu.execute();
+				} catch (OperationNotFoundException exception) {
+					System.out.println(exception.getMessage() + " at 0x" + cpu.PC);
+				}
 				int cycles = cpu.clock.getT() - oldCycles;
 				totalCycles += cycles;
 				cpu.updateTimers(cycles);

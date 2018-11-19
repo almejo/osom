@@ -24,4 +24,9 @@ class OperationINC_r extends Operation {
 			cpu.alu.incHI(register, true);
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "INC "+ register.getName(lo);
+	}
 }

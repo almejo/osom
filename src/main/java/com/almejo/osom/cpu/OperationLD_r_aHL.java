@@ -25,4 +25,9 @@ abstract  class OperationLD_r_aHL extends Operation {
 			register.setHi(value);
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD " + register.getName(lo) + ", [HL] ";
+	}
 }

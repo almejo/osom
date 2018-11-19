@@ -23,4 +23,9 @@ class OperationBIT_b_r extends OperationCB {
 		}
 		cpu.alu.setBITFlags((value & 1 << b) == 0);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "BIT " + b + ", " + register.getName(lo);
+	}
 }

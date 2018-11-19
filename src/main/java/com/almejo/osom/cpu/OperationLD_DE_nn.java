@@ -16,4 +16,9 @@ class OperationLD_DE_nn extends Operation {
 		}
 		cpu.DE.setValue(nn);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD " + cpu.DE.getName() + ", 0x" + toWord(ram[base + 2], ram[base + 1]);
+	}
 }

@@ -27,4 +27,9 @@ class OperationLD_r_n extends Operation {
 			register.setHi(mmu.getByte(address));
 		}
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD " + register.getName(lo) + ", " + BitUtils.toHex2(ram[base + 1]);
+	}
 }

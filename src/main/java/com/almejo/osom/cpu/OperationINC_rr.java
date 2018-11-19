@@ -18,4 +18,9 @@ class OperationINC_rr extends Operation {
 		}
 		register.inc(1);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "INC " + register.getName();
+	}
 }

@@ -18,4 +18,9 @@ class OperationDEC_rr extends Operation {
 		}
 		cpu.alu.dec(register, false);
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "DEC " + register.getName();
+	}
 }

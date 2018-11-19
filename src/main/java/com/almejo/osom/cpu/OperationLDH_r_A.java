@@ -20,4 +20,9 @@ class OperationLDH_r_A extends Operation {
 		}
 		mmu.setByte(0xFF00 + value, cpu.AF.getHi());
 	}
+
+	@Override
+	public String decoded(int[] ram, int base) {
+		return "LD (0xFF00 + " + register.getName(lo) + "), A;";
+	}
 }
