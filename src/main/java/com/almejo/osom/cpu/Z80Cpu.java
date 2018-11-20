@@ -85,7 +85,9 @@ public class Z80Cpu {
 		operationTable.addOpcode(new OperationJP_Z_nn(this, this.mmu));
 		operationTable.addOpcode(new OperationJP_HL(this, this.mmu));
 		operationTable.addOpcode(new OperationXOR_A(this, this.mmu));
+		operationTable.addOpcode(new OperationXOR_B(this, this.mmu));
 		operationTable.addOpcode(new OperationXOR_C(this, this.mmu));
+		operationTable.addOpcode(new OperationXOR_n(this, this.mmu));
 		operationTable.addOpcode(new OperationOR_B(this, this.mmu));
 		operationTable.addOpcode(new OperationOR_C(this, this.mmu));
 		operationTable.addOpcode(new OperationLD_HL_nn(this, this.mmu));
@@ -125,10 +127,19 @@ public class Z80Cpu {
 
 		operationTable.addOpcode(new OperationCP_HL(this, this.mmu));
 		operationTable.addOpcode(new OperationCP_n(this, this.mmu));
+		operationTable.addOpcode(new OperationCP_B(this, this.mmu));
+//		operationTable.addOpcode(new OperationCP_C(this, this.mmu));
+//		operationTable.addOpcode(new OperationCP_D(this, this.mmu));
+//		operationTable.addOpcode(new OperationCP_E(this, this.mmu));
+//		operationTable.addOpcode(new OperationCP_H(this, this.mmu));
+//		operationTable.addOpcode(new OperationCP_L(this, this.mmu));
+
 		operationTable.addOpcode(new OperationBIT_7_H(this, this.mmu));
 		operationTable.addOpcode(new OperationBIT_2_B(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_0_A(this, this.mmu));
 		operationTable.addOpcode(new OperationBIT_0_C(this, this.mmu));
 		operationTable.addOpcode(new OperationBIT_0_D(this, this.mmu));
+		operationTable.addOpcode(new OperationBIT_3_A(this, this.mmu));
 		operationTable.addOpcode(new OperationBIT_3_B(this, this.mmu));
 		operationTable.addOpcode(new OperationBIT_4_B(this, this.mmu));
 		operationTable.addOpcode(new OperationBIT_5_B(this, this.mmu));
@@ -154,6 +165,9 @@ public class Z80Cpu {
 		operationTable.addOpcode(new OperationLD_C_A(this, this.mmu));
 		operationTable.addOpcode(new OperationLD_D_A(this, this.mmu));
 		operationTable.addOpcode(new OperationLD_E_A(this, this.mmu));
+
+		operationTable.addOpcode(new OperationLD_L_A(this, this.mmu));
+		operationTable.addOpcode(new OperationLD_L_E(this, this.mmu));
 
 		operationTable.addOpcode(new OperationLD_H_A(this, this.mmu));
 		operationTable.addOpcode(new OperationPUSH_AF(this, this.mmu));
@@ -187,7 +201,8 @@ public class Z80Cpu {
 		operationTable.addOpcode(new OperationRST_28(this, this.mmu));
 		operationTable.addOpcode(new OperationRES_0_A(this, this.mmu));
 
-		//operationTable.addOpcode(new OperationLD_L_E(this, this.mmu));
+		operationTable.addOpcode(new OperationSET_7_HL(this, this.mmu) {
+		});
 	}
 
 
@@ -213,14 +228,14 @@ public class Z80Cpu {
 //			mmu.printVRAM();
 //		}
 
-			if (operationCode == PREFIX_CB) {
-				//System.out.print("0xcb-");
-				PC.inc(1);
-				operationCode = mmu.getByte(PC.getValue());
-				operation = operationTable.getOperationCB(operationCode);
-			} else {
-				operation = operationTable.getOperation(operationCode);
-			}
+		if (operationCode == PREFIX_CB) {
+			//System.out.print("0xcb-");
+			PC.inc(1);
+			operationCode = mmu.getByte(PC.getValue());
+			operation = operationTable.getOperationCB(operationCode);
+		} else {
+			operation = operationTable.getOperation(operationCode);
+		}
 
 		if (printLine) {
 			System.out.println("0x" + Integer.toHexString(PC.getValue()));

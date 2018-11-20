@@ -2,17 +2,9 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 
-class OperationXOR_C extends Operation {
+class OperationXOR_C extends OperationXOR_r {
 
 	OperationXOR_C(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 1, 4, 0xa9, 1);
-	}
-
-	@Override
-	void execute() {
-		if (debug) {
-			print("XOR C");
-		}
-		cpu.AF.setHi(cpu.alu.xor(cpu.AF.getHi(), cpu.BC.getLo()));
+		super(cpu, mmu,  cpu.BC, true, 0xa9);
 	}
 }
