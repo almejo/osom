@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'groovy'
     id 'application'
 }
 
@@ -23,5 +24,12 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.26'
     annotationProcessor 'org.projectlombok:lombok:1.18.26'
     implementation 'commons-cli:commons-cli:1.4'
-    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    runtimeOnly 'ch.qos.logback:logback-classic:1.5.32'
+    testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
+    testImplementation 'org.apache.groovy:groovy-all:4.0.15'
+}
+
+test {
+    useJUnitPlatform()
 }
