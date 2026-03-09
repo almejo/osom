@@ -205,12 +205,16 @@ public class Z80Cpu {
 			if (operationsCB.containsKey(operationCode)) {
 				operation = operationsCB.get(operationCode);
 			} else {
-				throw new RuntimeException("code not found 0xcb 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
+				String message = buildUnimplementedOpcodeMessage(String.format("0xCB 0x%02X", operationCode));
+				log.warn(message);
+				throw new RuntimeException(message);
 			}
 		} else if (operations.containsKey(operationCode)) {
 			operation = operations.get(operationCode);
 		} else {
-			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
+			String message = buildUnimplementedOpcodeMessage(String.format("0x%02X", operationCode));
+			log.warn(message);
+			throw new RuntimeException(message);
 		}
 
 		int oldPC = PC.getValue();
@@ -220,6 +224,17 @@ public class Z80Cpu {
 		if (PC.getValue() == oldPC) {
 			PC.inc(operation.getLength());
 		}
+	}
+
+	private String buildUnimplementedOpcodeMessage(String opcodeHex) {
+		int zeroFlag = isFlagSetted(FLAG_ZERO) ? 1 : 0;
+		int subtractFlag = isFlagSetted(FLAG_SUBTRACT) ? 1 : 0;
+		int halfCarryFlag = isFlagSetted(FLAG_HALF_CARRY) ? 1 : 0;
+		int carryFlag = isFlagSetted(FLAG_CARRY) ? 1 : 0;
+		return String.format(
+				"Unimplemented opcode %s (UNKNOWN) at PC=0x%04X SP=0x%04X AF=0x%04X BC=0x%04X DE=0x%04X HL=0x%04X Flags=[Z=%d N=%d H=%d C=%d]",
+				opcodeHex, PC.getValue(), SP.getValue(), AF.getValue(), BC.getValue(), DE.getValue(), HL.getValue(),
+				zeroFlag, subtractFlag, halfCarryFlag, carryFlag);
 	}
 
 	void setFlag(byte flag, boolean set) {

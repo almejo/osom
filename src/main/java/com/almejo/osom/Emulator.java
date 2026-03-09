@@ -23,6 +23,13 @@ public class Emulator {
 	private static final int CYCLES_PER_FRAME = CYCLES / 60;
 
 	public void run(boolean bootBios, String file) throws IOException {
+		if (bootBios) {
+			Path biosPath = Paths.get("bios/bios.bin");
+			if (!Files.exists(biosPath)) {
+				log.error("BIOS file not found at 'bios/bios.bin'. Use --no-bios to skip the boot sequence.");
+				throw new IllegalStateException("BIOS file not found at 'bios/bios.bin'. Use --no-bios to skip the boot sequence.");
+			}
+		}
 
 		Path path = Paths.get(file);
 		GPU gpu = new GPU();
