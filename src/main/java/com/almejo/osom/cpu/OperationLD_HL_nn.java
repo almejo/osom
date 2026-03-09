@@ -11,9 +11,6 @@ class OperationLD_HL_nn extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getWord(cpu.PC.getValue() + 1);
-		if (debug) {
-			printWord("LD " + cpu.HL.getName() + "," + value, value);
-		}
 		cpu.HL.setValue(value);
 	}
 }

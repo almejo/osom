@@ -5,15 +5,8 @@ import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.memory.MMU;
 
 public class GPU {
-	private static final int H_BLANK = 0;
-	private static final int V_BLANK = 1;
-	private static final int SPRITES = 2;
-	private static final int GRAPHICS = 3;
-
 	private int line = 1;
 	private int clock = 0;
-	public int mode = H_BLANK;
-	private static final int[][][] tiles = new int[512][8][8];
 	private static final int[][] pixels = new int[160][144];
 	private Z80Cpu cpu;
 	private MMU mmu;
@@ -42,7 +35,6 @@ public class GPU {
 
 		if (clock >= 456) {
 			clock = 0;
-			//System.out.println(clock + "]line: " + line);
 
 			if (line < 145) {
 				drawLine();
@@ -59,58 +51,6 @@ public class GPU {
 				mmu.setScanline(line);
 			}
 		}
-//		switch (mode) {
-//			case H_BLANK:
-//				if (clock >= 204) {
-//					line++;
-//					clock = 0;
-//					mmu.setScanline(line);
-//					mode = SPRITES;
-//				}
-//				break;
-//			case V_BLANK:
-////				if (clock >= 456 * 144) {
-////					clock = 0;
-////					line = 0;
-////					mmu.setScanline(1);
-////					mode = SPRITES;
-////				}
-//				if (clock >= 456) {
-//					line++;
-//					System.out.println(clock + "]vbline: " + line);
-//					clock = 0;
-//					mmu.setScanline(line);
-//					if (line > 153) {
-//						mode = SPRITES;
-//						line = 0;
-//						System.out.println(clock + "]vbline: " + line);
-//						mmu.setScanline(line);
-//						System.out.println("next frame");
-//					}
-//				}
-//				break;
-//			case SPRITES:
-//				if (clock >= 80) {
-//					clock = 0;
-//					mode = GRAPHICS;
-//
-//				}
-//				break;
-//			case GRAPHICS:
-//				if (clock >= 172) {
-//					System.out.println(clock + "]line: " + line);
-//					clock = 0;
-//					drawLine();
-//					if (line == 144) {
-//						System.out.println(clock + "]vbline: " + line);
-//						mode = V_BLANK;
-//						cpu.requestInterrupt(Z80Cpu.INTERRUPT_ADDRESS_V_BLANK);
-//						drawScreen();
-//					} else {
-//						mode = H_BLANK;
-//					}
-//				}
-//		}
 	}
 
 	private boolean isEnabled() {
@@ -119,15 +59,12 @@ public class GPU {
 
 	private int getControlInfo() {
 		return mmu.getByte(MMU.LCD_CONTROLLER);
-		// return 129;
-//		return 145;
 	}
 
 	private void drawLine() {
 		if (mmu.getByte(MMU.LCD_LINE_COUNTER) > 143) {
 			return;
 		}
-		// System.out.println("draw drawLine");
 		int control = getControlInfo();
 		if (backgroundEnabled(control)) {
 			renderBackground(control);
@@ -135,10 +72,6 @@ public class GPU {
 		if (spritesEnabled(control)) {
 			renderSprites();
 		}
-	}
-
-	private void drawScreen() {
-
 	}
 
 	private void renderSprites() {
@@ -178,10 +111,6 @@ public class GPU {
 			// or unsigned
 			int tileAddress = mapLayout + tileRow + tileColumn;
 			int tileIndex = useUnsignedIdentifier ? mmu.getByte(tileAddress) : mmu.getByteSigned(tileAddress);
-//			if (useUnsignedIdentifier)
-//				tileIndex = (BYTE) ReadMemory(tileAddress);
-//			else
-//				tileIndex = (SIGNED_BYTE) ReadMemory(tileAddress);
 			int tileLocation = tilesData + (tileIndex + (useUnsignedIdentifier ? 0 : 128)) * 16;
 			int tileLine = (line % 8) * 2;// 2 bytes
 			int byte1 = mmu.getByte(tileLocation + tileLine);
@@ -200,7 +129,4 @@ public class GPU {
 		return BitUtils.isBitSetted(control, 0);
 	}
 
-	public void updateTile(int tile, int y, int x, int i) {
-		tiles[tile][x][y] = i;
-	}
 }

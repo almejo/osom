@@ -1,7 +1,6 @@
 package com.almejo.osom.memory;
 
 import com.almejo.osom.cpu.Z80Cpu;
-import com.almejo.osom.gpu.GPU;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,45 +13,23 @@ public class MMU {
 	public static final int DMA_ADDRESS = 0xFF46;
 	private static final int IO_REGISTER = 0xFF00;
 
-	public static int TIMER_ADDRESS = 0xFF05;
-	public static int TIMER_MODULATOR = 0xFF06;
-	public static int TIMER_CONTROLLER = 0xFF07;
+	public static final int TIMER_ADDRESS = 0xFF05;
+	public static final int TIMER_MODULATOR = 0xFF06;
+	public static final int TIMER_CONTROLLER = 0xFF07;
 
-	public static int LCD_LINE_COUNTER = 0xFF44;
+	public static final int LCD_LINE_COUNTER = 0xFF44;
 	public static final int LCD_CONTROLLER = 0xFF40;
 
 	private boolean useBios;
-	private GPU gpu;
-	private int[] ram = new int[0xffff + 1];
-	private int[] video = new int[0x1fff + 1];
-	private int[] external = new int[0x1fff + 1];
-	private int[] sprites = new int[0x9F + 1];
-	private int[] io = new int[0x7f + 1];
-	private int[] zero = new int[0x7f + 1];
-	private int[] bios;
+	private final int[] ram = new int[0xffff + 1];
+	private final int[] external = new int[0x1fff + 1];
+	private final int[] sprites = new int[0x9F + 1];
+	private final int[] bios;
 	private Cartridge cartridge;
 	private Z80Cpu cpu;
 
-
-	public void updatetile(int address) {
-		// Get the "base address" for this tile row
-		address &= 0x1FFE; // Work out which tile and row was updated var
-		int tile = (address >> 4) & 0x1ff;
-		int y = (address >> 1) & 7;
-
-		int sx;
-		for (int x = 0; x < 8; x++) {
-			// Find bit index for this pixel
-			sx = 1 << (7 - x);
-			// Update tile set
-			gpu.updateTile(tile, y, x, ((video[address] & sx) > 0 ? 1 : 0) + ((video[address + 1] & sx) > 0 ? 2 : 0));
-		}
-	}
-
-
-	public MMU(boolean useBios, GPU gpu) throws IOException {
+	public MMU(boolean useBios) throws IOException {
 		this.useBios = useBios;
-		this.gpu = gpu;
 		bios = ByteUtils.getBytes(Files.readAllBytes(Paths.get("bios/bios.bin")));
 	}
 
@@ -62,23 +39,12 @@ public class MMU {
 
 	public void setByte(int address, int value) {
 		value &= 0x00ff;
-//		if (address >= 0 && address <= 0x7fff) {
-//			return;
-//		} else
 		if (address >= 0x8000 && address <= 0x9fff) {
 			ram[address] = value;
-//			if (address >= 0x9800 && address  <=0x9bff) {
-//				System.out.println(cpu.PC +  "---------->" + value);
-//			}
-			//updatetile(address - 0x8000);
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			external[address - 0xa000] = value;
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
 			sprites[address - 0xFE00] = value;
-//		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
-//			return;
-//		} else if (address >= 0xFF00 && address <= 0xFF7F) {
-//			return; // io[address - 0xFF00] = value;
 		} else if (address == DMA_ADDRESS) {
 			doDMATransfer(value);
 		} else if (address == LCD_LINE_COUNTER) {
@@ -90,9 +56,6 @@ public class MMU {
 		} else if (address == 0xFF80) {
 		} else if (address > 0xFF80 && address <= 0xFFFF) {
 			ram[address] = value;
-//			if (address == 0xff81) {
-//				System.out.println(cpu.PC + "escrbiedo 81 " + Integer.toHexString(value) +  " ---> " + getByte(0xff81));
-//			}
 		} else if (address == IO_REGISTER) {
 			ram[IO_REGISTER] = value;
 		} else if (address == TIMER_CONTROLLER) {
@@ -107,7 +70,6 @@ public class MMU {
 	}
 
 	private void doDMATransfer(int value) {
-		//System.out.println("doing dma " + (value << 8));
 		int address = value << 8; // source address is data * 100
 		for (int i = 0; i < 0xA0; i++) {
 			setByte(0xFE00 + i, getByte(address + i));
@@ -131,10 +93,6 @@ public class MMU {
 	}
 
 	public int getByte(int address) {
-//		if (address == 0xffa6) {
-//			System.out.println();
-//			System.out.println(cpu.PC + " revisando 0xffa6 ---> " + "0x" + Integer.toHexString(ram[0xffa6]));
-//		}
 		if (address >= 0 && address <= 0x7fff) {
 			if (useBios && address <= 0x100) {
 				if (address == 0x100) {
@@ -159,7 +117,7 @@ public class MMU {
 				|| address == INTERRUPT_CONTROLLER_ADDRESS) {
 			return ram[address];
 		} else if (address > 0xFF00 && address <= 0xFF7F) {
-			return 0; // io[address - 0xFF00];
+			return 0;
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			return ram[address];
 		} else if (address >= 0xC000 && address <= 0xDFFF) {
@@ -171,8 +129,7 @@ public class MMU {
 	}
 
 	private int getIOState() {
-		int state = 0xDF ;//(ram[IO_REGISTER] & 0xF0) | (0x08);
-		//	System.out.println(Integer.toHexString(state));
+		int state = 0xDF;
 		return state;
 	}
 
@@ -195,7 +152,6 @@ public class MMU {
 		int delta = val;
 		if (delta > 127) {
 			delta = -1 * (0xff - delta);
-			// delta = -((~251+1)&0xff);
 		}
 		return delta;
 	}
@@ -215,21 +171,4 @@ public class MMU {
 		ram[LCD_LINE_COUNTER] = lineNumber;
 	}
 
-	public void printVRAM() {
-		System.out.println("PC" + cpu.PC);
-		System.out.println("TILES ------------------------------------------------");
-		for (int i = 0x8000; i <= 0x87FF; i++) {
-			System.out.print(ram[i] + ".");
-		}
-		System.out.println();
-		System.out.println("MAP ------------------------------------------------");
-		int a = 0;
-		for (int i = 0; i < 32; i++) {
-			for (int j = 0; j < 32; j++) {
-				System.out.print(ram[0x9800 + a] + ".");
-				a++;
-			}
-			System.out.println();
-		}
-	}
 }

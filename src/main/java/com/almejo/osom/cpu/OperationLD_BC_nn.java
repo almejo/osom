@@ -11,9 +11,6 @@ class OperationLD_BC_nn extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getWord(cpu.PC.getValue() + 1);
-		if (debug) {
-			print("LD " + cpu.BC.getName() + ", 0x" + Integer.toHexString(value));
-		}
 		cpu.BC.setValue(value);
 	}
 }

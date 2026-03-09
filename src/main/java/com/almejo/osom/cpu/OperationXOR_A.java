@@ -10,9 +10,6 @@ class OperationXOR_A extends Operation {
 
 	@Override
 	void execute() {
-		if (debug) {
-			print("XOR A");
-		}
 		cpu.AF.setHi(cpu.alu.xor(cpu.AF.getHi(), cpu.AF.getHi()));
 	}
 }

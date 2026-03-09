@@ -3,7 +3,7 @@ package com.almejo.osom.cpu;
 import com.almejo.osom.memory.MMU;
 
 abstract class OperationConditional extends Operation {
-	protected int t2;
+	protected final int t2;
 	protected boolean actionTaken;
 
 	OperationConditional(Z80Cpu cpu, MMU mmu, int m, int t, int t2, int code, int length) {

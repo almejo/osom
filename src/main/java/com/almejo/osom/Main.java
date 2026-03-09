@@ -1,17 +1,23 @@
 package com.almejo.osom;
 
-import org.apache.commons.cli.*;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
 
+@Slf4j
 public class Main {
 	public static void main(String[] args) throws IOException {
 
 		CommandLine commandLine;
 		try {
 			commandLine = parseCommandArguments(args);
-		} catch (ParseException exp) {
-			System.err.println("Error: " + exp.getMessage());
+		} catch (ParseException exception) {
+			log.error("Error: {}", exception.getMessage());
 			System.exit(0);
 			return;
 		}
@@ -19,9 +25,6 @@ public class Main {
 		boolean bios = !commandLine.hasOption("no-bios");
 		String filename = commandLine.getOptionValue("rom");
 
-//		System.out.println("Running emulator");
-//		System.out.println("Bios enabled: " + bios);
-//		System.out.println("Rom filename: " + filename);
 		new Emulator().run(bios, filename);
 	}
 

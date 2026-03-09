@@ -1,14 +1,15 @@
 package com.almejo.osom.cpu;
 
-import com.almejo.osom.gpu.GPU;
 import com.almejo.osom.memory.MMU;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class Z80Cpu {
 	private static final Map<Integer, Integer> INTERRUPT_ADDRESSES = new HashMap<>();
 	public static final int INTERRUPT_ADDRESS_V_BLANK = 0x40;
@@ -22,14 +23,13 @@ public class Z80Cpu {
 	private static final int INTERRUPT_BIT_JOYPAD = 4;
 
 	private static int timerCounter = 1024; // Default. 4096 hz
-	private static int TIMER_ENABLED_BIT = 2;
+	private static final int TIMER_ENABLED_BIT = 2;
 
 	private boolean interruptionsEnabled = false;
-	private static int PREFIX_CB = 0xcb;
+	private static final int PREFIX_CB = 0xcb;
 
-	private HashMap<Integer, Operation> operations = new HashMap<>();
-
-	private HashMap<Integer, Operation> operationsCB = new HashMap<>();
+	private final HashMap<Integer, Operation> operations = new HashMap<>();
+	private final HashMap<Integer, Operation> operationsCB = new HashMap<>();
 
 	static {
 		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_V_BLANK, INTERRUPT_ADDRESS_V_BLANK);
@@ -40,28 +40,25 @@ public class Z80Cpu {
 
 	@Setter
 	private MMU mmu;
-	private int cyclesPerSecond;
+	private final int cyclesPerSecond;
 
 	final ALU alu;
 
-	boolean printLine = false;
-
-	private List<Register> registers = new LinkedList<>();
-	Register AF = new Register("AF");
-	Register BC = new Register("BC");
-	Register DE = new Register("DE");
-	Register HL = new Register("HL");
+	private final List<Register> registers = new LinkedList<>();
+	final Register AF = new Register("AF");
+	final Register BC = new Register("BC");
+	final Register DE = new Register("DE");
+	final Register HL = new Register("HL");
 
 	static byte FLAG_ZERO = 7;
 	static byte FLAG_SUBTRACT = 6;
 	static byte FLAG_HALF_CARRY = 5;
 	static byte FLAG_CARRY = 4;
 
-	public Register PC = new Register("PC");
-	Register SP = new Register("SP");
-	public Clock clock = new Clock();
+	public final Register PC = new Register("PC");
+	final Register SP = new Register("SP");
+	public final Clock clock = new Clock();
 	private int dividerCounter;
-	private GPU gpu;
 
 	public Z80Cpu(MMU mmu, int cycles) {
 		this.mmu = mmu;
@@ -168,11 +165,9 @@ public class Z80Cpu {
 		addOpcode(new OperationRET_NZ(this, this.mmu));
 		addOpcode(new OperationLD_A_B(this, this.mmu));
 		addOpcode(new OperationLD_A_C(this, this.mmu));
-		// addOpcode(new OperationLD_A_D(this, this.mmu));
 		addOpcode(new OperationLD_A_E(this, this.mmu));
 		addOpcode(new OperationLD_A_H(this, this.mmu));
 		addOpcode(new OperationLD_A_L(this, this.mmu));
-
 		addOpcode(new OperationLD_nn_A(this, this.mmu));
 		addOpcode(new OperationDEC_A(this, this.mmu));
 		addOpcode(new OperationSUB_B(this, this.mmu));
@@ -203,17 +198,8 @@ public class Z80Cpu {
 	public void execute() {
 		Operation operation;
 		int operationCode = mmu.getByte(PC.getValue());
-		if (PC.getValue() == 0x21b) {
-			//printLine = true;
-//			mmu.printVRAM();
-//			//System.exit(0);
-		}
-//		if (PC.getValue() == 0x2803) {
-//			mmu.printVRAM();
-//		}
 
 		if (operationCode == PREFIX_CB) {
-			//System.out.print("0xcb-");
 			PC.inc(1);
 			operationCode = mmu.getByte(PC.getValue());
 			if (operationsCB.containsKey(operationCode)) {
@@ -226,45 +212,15 @@ public class Z80Cpu {
 		} else {
 			throw new RuntimeException("code not found 0x" + Integer.toHexString(operationCode) + " at 0x" + Integer.toHexString(PC.getValue()));
 		}
-		if (printLine) {
-			System.out.println("0x" + Integer.toHexString(PC.getValue()));
-		}
-//		System.out.print("0x" + Integer.toHexString(PC.getValue()) + " - ");
-//		System.out.print("0x" + Integer.toHexString(operationCode) + "] ");
-//		if (PC.getValue() == 0x393) {
-//			Operation.debug = true;
-//		}
-		if (PC.getValue() == 0x3a0) {
-			Operation.debug = true;
-		}
 
-//		if (Operation.debug) {
-//			System.out.print("0x" + Integer.toHexString(PC.getValue()) + "] OPCODE 0x" + Integer.toHexString(operationCode) + " ");
-//		}
-//		if (PC.getValue() == 0x02f0) {
-//			System.out.println(" ----> " + mmu.getByte(MMU.INTERRUPT_ENABLED_ADDRESS) + " " + interruptionsEnabled);
-//			//System.exit(0);
-//		}
 		int oldPC = PC.getValue();
 		operation.execute();
 
-//		if (Operation.debug) {
-//			printState();
-//		}
 		operation.update(clock);
 		if (PC.getValue() == oldPC) {
 			PC.inc(operation.getLength());
 		}
-//		printState(e);
 	}
-
-
-	private void printState() {
-		StringBuilder builder = new StringBuilder();
-		registers.forEach(register -> builder.append(register.toString()).append(" "));
-		System.out.println(builder.append(" ").append(clock).toString());
-	}
-
 
 	void setFlag(byte flag, boolean set) {
 		if (set) {
@@ -349,7 +305,7 @@ public class Z80Cpu {
 	}
 
 	public void requestInterrupt(int bit) {
-		// System.out.println("requested interrupt " + Integer.toHexString(bit));
+		log.debug("Requested interrupt 0x{}", Integer.toHexString(bit));
 		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
 		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.setBit(value, bit));
 	}
@@ -359,7 +315,7 @@ public class Z80Cpu {
 	}
 
 	public void updateTimerCounter(int value) {
-		System.out.println("timer updated!!!");
+		log.debug("Timer counter updated, value={}", value);
 		timerCounter = convertToTimerCycles(value);
 	}
 
@@ -382,14 +338,10 @@ public class Z80Cpu {
 		if (interruptionsEnabled) {
 			int requests = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
 			int enabledInterrupts = mmu.getByte(MMU.INTERRUPT_ENABLED_ADDRESS);
-			if (PC.getValue() >= 0x02e9) {
-				//System.out.println("control " + Integer.toHexString(requests) + " enabled "  + Integer.toHexString(enabledInterrupts));
-			}
 			for (int i = 0; i < 5; i++) {
 				if (canServeInterrupt(requests, enabledInterrupts, i)) {
-					//System.out.println("interrupt!!! " + i);
+					log.debug("Serving interrupt bit={}", i);
 					serveInterrupt(i);
-					//System.exit(0);
 				}
 			}
 		}
@@ -401,26 +353,24 @@ public class Z80Cpu {
 		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.resetBit(value, bit));
 
 		pushWordOnStack(PC.getValue());
-		//System.out.println("serving interrupt " + Integer.toHexString(INTERRUPT_ADDRESSES.get(bit)));
+		log.debug("Serving interrupt address=0x{}", Integer.toHexString(INTERRUPT_ADDRESSES.get(bit)));
 		PC.setValue(INTERRUPT_ADDRESSES.get(bit));
 	}
 
 	public void pushWordOnStack(int value) {
-//		int hi = value >> 8;
-//		int lo = value & 0x00ff;
-//		SP.dec(1);
-//		mmu.setByte(SP.getValue(), hi);
-//		SP.dec(1);
-//		mmu.setByte(SP.getValue(), lo);
 		SP.dec(2);
-		//System.out.println("0x" + Integer.toHexString(PC.getValue()) + " push] 0x" + Integer.toHexString(value) + " " + SP.toString());
+		if (log.isTraceEnabled()) {
+			log.trace("0x{} push] 0x{} {}", Integer.toHexString(PC.getValue()), Integer.toHexString(value), SP);
+		}
 		mmu.setWord(SP.getValue(), value);
 	}
 
 	public int popWordOnStack() {
 		int value = mmu.getWord(SP.getValue());
 		SP.inc(2);
-		//System.out.println("0x" + Integer.toHexString(PC.getValue()) + " pop] 0x" + Integer.toHexString(value) + " " + SP.toString());
+		if (log.isTraceEnabled()) {
+			log.trace("0x{} pop] 0x{} {}", Integer.toHexString(PC.getValue()), Integer.toHexString(value), SP);
+		}
 		return value;
 	}
 
@@ -428,20 +378,4 @@ public class Z80Cpu {
 		return BitUtils.isBitSetted(requests, i) && BitUtils.isBitSetted(enabledInterrupts, i);
 	}
 
-	public String printFlags() {
-		return "F:" + (BitUtils.isBitSetted(AF.getLo(), FLAG_ZERO) ? "Z" : "-")
-				+ (BitUtils.isBitSetted(AF.getLo(), FLAG_SUBTRACT) ? "N" : "-")
-				+ (BitUtils.isBitSetted(AF.getLo(), FLAG_HALF_CARRY) ? "H" : "-")
-				+ (BitUtils.isBitSetted(AF.getLo(), FLAG_CARRY) ? "C" : "-")
-				;
-
-	}
-
-	public void setGpu(GPU gpu) {
-		this.gpu = gpu;
-	}
-
-	public GPU getGpu() {
-		return gpu;
-	}
 }

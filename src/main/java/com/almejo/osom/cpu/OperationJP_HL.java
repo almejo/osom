@@ -11,9 +11,6 @@ class OperationJP_HL extends Operation {
 	@Override
 	void execute() {
 		int value = cpu.HL.getValue();
-		if (debug) {
-			print(cpu.PC.toString() + " ] JP [HL] ; 0x" + Integer.toHexString(value));
-		}
 		cpu.PC.setValue(value);
 	}
 }

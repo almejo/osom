@@ -1,7 +1,7 @@
 package com.almejo.osom.cpu;
 
 public class ALU {
-	private Z80Cpu cpu;
+	private final Z80Cpu cpu;
 
 	ALU(Z80Cpu cpu) {
 		this.cpu = cpu;
@@ -90,7 +90,6 @@ public class ALU {
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value - n) & 0xff) == 0);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
-		// cpu.setFlag(Z80Cpu.FLAG_CARRY, value < n);
 	}
 
 	private void updateSubFlags(int value, int n) {

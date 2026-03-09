@@ -10,9 +10,6 @@ class OperationLDD_HL_A extends Operation {
 
 	@Override
 	void execute() {
-		if (debug) {
-			print("LDD (" + cpu.HL.getName() + ")," + cpu.AF.getName(false));
-		}
 		mmu.setByte(cpu.HL.getValue(), cpu.AF.getHi());
 		cpu.alu.dec(cpu.HL, false);
 	}

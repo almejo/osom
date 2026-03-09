@@ -11,9 +11,6 @@ class OperationJP_nn extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getWord(cpu.PC.getValue() + 1);
-		if (debug) {
-			printWord("JP " + hexAddr(value), value);
-		}
 		cpu.PC.setValue(value);
 	}
 

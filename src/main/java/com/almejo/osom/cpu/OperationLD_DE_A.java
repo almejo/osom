@@ -11,9 +11,6 @@ class OperationLD_DE_A extends Operation {
 	@Override
 	void execute() {
 		int value = cpu.AF.getHi();
-		if (debug) {
-			print("LD " + cpu.DE.getName() + ", 0x" + Integer.toHexString(value));
-		}
 		mmu.setByte(cpu.DE.getValue(), value);
 	}
 }

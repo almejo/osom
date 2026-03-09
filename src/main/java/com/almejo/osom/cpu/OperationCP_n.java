@@ -11,9 +11,6 @@ class OperationCP_n extends Operation {
 	@Override
 	void execute() {
 		int n = mmu.getByte(cpu.PC.getValue() + 1);
-		if (debug) {
-			printByte("CP " + n, n);
-		}
 		cpu.alu.cpHI(cpu.AF, n);
 	}
 }

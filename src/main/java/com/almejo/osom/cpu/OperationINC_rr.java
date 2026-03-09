@@ -4,7 +4,7 @@ import com.almejo.osom.memory.MMU;
 
 class OperationINC_rr extends Operation {
 
-	private Register register;
+	private final Register register;
 
 	OperationINC_rr(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register) {
 		super(cpu, mmu, m, t, code, 1);
@@ -13,9 +13,6 @@ class OperationINC_rr extends Operation {
 
 	@Override
 	void execute() {
-		if (debug) {
-			print("INC " + register.getName());
-		}
 		register.inc(1);
 	}
 }

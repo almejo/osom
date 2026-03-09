@@ -11,9 +11,6 @@ class OperationLD_A_DE extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getByte(cpu.DE.getValue());
-		if (debug) {
-			print("LD " + cpu.AF.getName(false) + ", (" + cpu.DE.getName() + ")");
-		}
 		cpu.AF.setHi(value);
 	}
 }

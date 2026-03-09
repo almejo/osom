@@ -3,8 +3,8 @@ package com.almejo.osom.cpu;
 import com.almejo.osom.memory.MMU;
 
 class OperationLDH_r_A extends Operation {
-	private Register register;
-	private boolean lo;
+	private final Register register;
+	private final boolean lo;
 
 	OperationLDH_r_A(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
 		super(cpu, mmu, m, t, code, 1);
@@ -15,9 +15,6 @@ class OperationLDH_r_A extends Operation {
 	@Override
 	void execute() {
 		int value = lo ? register.getLo() : register.getHi();
-		if (debug) {
-			print("LD (0xFF00 + " + register.getName(lo) + "), A; 0x" + Integer.toHexString(0xff00 + value) + " <- 0x" + Integer.toHexString(cpu.AF.getHi()));
-		}
 		mmu.setByte(0xFF00 + value, cpu.AF.getHi());
 	}
 }

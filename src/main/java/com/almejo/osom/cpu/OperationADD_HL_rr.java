@@ -4,8 +4,7 @@ import com.almejo.osom.memory.MMU;
 
 abstract class OperationADD_HL_rr extends Operation {
 
-	private Register register;
-	private boolean lo;
+	private final Register register;
 
 	OperationADD_HL_rr(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register) {
 		super(cpu, mmu, m, t, code, 1);
@@ -16,9 +15,6 @@ abstract class OperationADD_HL_rr extends Operation {
 	void execute() {
 		int before = cpu.HL.getValue();
 		int value = register.getValue();
-		if (debug) {
-			print("ADD HL, " + register.getName() + "; 0x" + Integer.toHexString(before) + " + " + Integer.toHexString(value));
-		}
 		int result = before + value;
 		cpu.HL.setValue(result & 0xFFFF);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);

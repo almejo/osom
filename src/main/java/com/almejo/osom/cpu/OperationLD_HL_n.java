@@ -11,9 +11,6 @@ class OperationLD_HL_n extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getByte(cpu.PC.getValue() + 1);
-		if (debug) {
-			printByte("LD (" + cpu.HL.getName() + ")," + value, value);
-		}
 		mmu.setByte(cpu.HL.getValue(), value);
 	}
 }

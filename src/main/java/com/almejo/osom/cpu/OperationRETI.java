@@ -11,11 +11,7 @@ class OperationRETI extends Operation {
 
 	@Override
 	void execute() {
-		int oldValue = cpu.PC.getValue();
 		cpu.PC.setValue(cpu.popWordOnStack());
 		cpu.setInterruptionsEnabled(true);
-		if (debug) {
-			print("RETI ;" + Integer.toHexString(oldValue) + " -> " + Integer.toHexString(cpu.PC.getValue()));
-		}
 	}
 }

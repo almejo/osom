@@ -14,8 +14,5 @@ class OperationRLA extends Operation {
 		int oldValue = cpu.AF.getHi();
 		int value = cpu.alu.rotateLeft(oldValue);
 		cpu.AF.setHi(value);
-		if (debug) {
-			print("RLA " + cpu.AF.getName(false) + "; //  0x" + Integer.toHexString(oldValue) + "--> 0x" + Integer.toHexString(value));
-		}
 	}
 }

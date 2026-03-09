@@ -11,9 +11,6 @@ class OperationCP_HL extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getByte(cpu.HL.getValue());
-		if (debug) {
-			print("CP HL; // 0x" + Integer.toHexString(value));
-		}
 		cpu.alu.cpHI(cpu.AF, value);
 	}
 }

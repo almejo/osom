@@ -1,11 +1,12 @@
 package com.almejo.osom;
 
-import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.gpu.GPU;
-import com.almejo.osom.memory.MMU;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JPanel;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 public class LCDScreen extends JPanel {
 	private final GPU gpu;
@@ -13,11 +14,9 @@ public class LCDScreen extends JPanel {
 	static final int FACTOR = 2;
 	private int seconds;
 	private int frameCounter;
-	private MMU mmu;
 	private int cycles;
 
-	LCDScreen(GPU gpu, MMU mmu) {
-		this.mmu = mmu;
+	LCDScreen(GPU gpu) {
 		setSize(new Dimension(160 * FACTOR, 144 * FACTOR));
 		this.gpu = gpu;
 	}
@@ -42,21 +41,6 @@ public class LCDScreen extends JPanel {
 		graphics.drawString("f: " + frameCounter, 0, 40);
 		graphics.drawString("s: " + seconds, 0, 50);
 
-//		int tilesOffsetY = 100;
-//		for (int i = 0x8000; i <= 0x87FF; i += 2) {
-//			//System.out.print(mmu.getByte(i) + ".");
-//			int byte1 = mmu.getByte(i);
-//			int byte2 = mmu.getByte(i);
-//			int tilesOffsetX = 0;
-//			for (int bit = 7; bit > -1; bit--) {
-//				int color = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
-//				color |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
-//				graphics.setColor(getColor(color));
-//				graphics.fillRect(tilesOffsetX * 2, tilesOffsetY * 2, 3, 3);
-//				tilesOffsetX += 2;
-//			}
-//			tilesOffsetY += 2;
-//		}
 		repaint();
 	}
 

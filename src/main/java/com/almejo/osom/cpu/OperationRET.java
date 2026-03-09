@@ -12,8 +12,5 @@ class OperationRET extends Operation {
 	@Override
 	void execute() {
 		cpu.PC.setValue(cpu.popWordOnStack());
-		if (debug) {
-			print("RET ;" + cpu.PC);
-		}
 	}
 }

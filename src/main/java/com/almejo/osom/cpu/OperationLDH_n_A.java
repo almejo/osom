@@ -10,9 +10,6 @@ class OperationLDH_n_A extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getByte(cpu.PC.getValue() + 1);
-		if (debug) {
-			printByte("LD (FF" + BitUtils.toHex2(value) + "h),a", value);
-		}
 		mmu.setByte(0xFF00 + value, cpu.AF.getHi());
 	}
 }

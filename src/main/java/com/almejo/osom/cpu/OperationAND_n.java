@@ -12,9 +12,6 @@ class OperationAND_n extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getByte(cpu.PC.getValue() + 1);
-		if (debug) {
-			print("AND 0x" + Integer.toHexString(value));
-		}
 		int result = (cpu.AF.getHi() & value) & 0xff;
 		cpu.AF.setHi(result);
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, result == 0);

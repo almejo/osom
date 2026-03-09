@@ -11,9 +11,6 @@ class OperationLD_A_HLI extends Operation {
 	@Override
 	void execute() {
 		int value = mmu.getByte(cpu.HL.getValue());
-		if (debug) {
-			print("LD A, [" + cpu.HL.getName() + "I] ; 0x" + Integer.toHexString(value));
-		}
 		cpu.AF.setHi(value);
 		cpu.HL.inc(1);
 	}

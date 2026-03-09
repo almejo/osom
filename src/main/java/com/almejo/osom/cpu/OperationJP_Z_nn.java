@@ -5,7 +5,7 @@ import com.almejo.osom.memory.MMU;
 class OperationJP_Z_nn extends OperationJP_cc_nn {
 
 	OperationJP_Z_nn(Z80Cpu cpu, MMU mmu) {
-		super(cpu, mmu, 3, 16, 12, "Z", 0xca, 3);
+		super(cpu, mmu, 3, 16, 12, 0xca, 3);
 	}
 
 

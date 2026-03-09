@@ -11,9 +11,6 @@ class OperationADD_aHL extends Operation {
 	@Override
 	void execute() {
 		int n = mmu.getByte(cpu.HL.getValue());
-		if (debug) {
-			print("ADD A, [HL]; " + Integer.toHexString(n));
-		}
 		cpu.alu.addRegisterHI(cpu.AF, n);
 	}
 }

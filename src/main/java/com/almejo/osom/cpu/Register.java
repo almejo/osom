@@ -4,7 +4,7 @@ import lombok.Getter;
 
 class Register {
 	@Getter
-	private String name;
+	private final String name;
 
 	@Getter
 	private int lo;
@@ -35,28 +35,11 @@ class Register {
 
 	@Override
 	public String toString() {
-		return this.name + "=0x" + toHex(this.getValue());// + "(b" + toBinary(this.getHi()) + " " + toBinary(this.getLo()) + ")";
-	}
-
-
-	public String debugString() {
-		return this.name + ":" + toHex(this.getValue());
-	}
-
-	public String debugStringHI() {
-		return this.getName(false) + ":" + toHex2(this.getHi());
+		return this.name + "=0x" + toHex(this.getValue());
 	}
 
 	private String toHex(int value) {
 		return String.format("%4s", Integer.toHexString(value)).replace(" ", "0");
-	}
-
-	private String toHex2(int value) {
-		return String.format("%2s", Integer.toHexString(value)).replace(" ", "0");
-	}
-
-	private String toBinary(int value) {
-		return String.format("%8s", Integer.toBinaryString(value)).replace(" ", "0");
 	}
 
 	public void inc(int value) {
@@ -66,20 +49,11 @@ class Register {
 	public void dec(int value) {
 		setValue(getValue() - value);
 	}
-
-	public String getName(boolean lo) {
-		return "" + (lo ? getName().charAt(1) : getName().charAt(0));
-	}
-
 	public void set(boolean lo, int value) {
 		if (lo) {
 			setLo(value);
 		} else {
 			setHi(value);
 		}
-	}
-
-	public String toHex() {
-		return toHex(this.getValue());
 	}
 }

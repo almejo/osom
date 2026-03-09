@@ -10,9 +10,6 @@ class OperationDI extends Operation {
 
 	@Override
 	void execute() {
-		if (debug) {
-			print("DI");
-		}
 		cpu.setInterruptionsEnabled(false);
 	}
 

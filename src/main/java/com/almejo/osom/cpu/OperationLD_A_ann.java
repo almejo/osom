@@ -13,8 +13,5 @@ class OperationLD_A_ann extends Operation {
 		int address = mmu.getWord(cpu.PC.getValue() + 1);
 		int value = mmu.getByte(address);
 		cpu.AF.setHi(value);
-		if (debug) {
-			print("LD A, [0x" + Integer.toHexString(address) + "] ; 0x" + Integer.toHexString(value));
-		}
 	}
 }

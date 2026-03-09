@@ -5,7 +5,7 @@ import com.almejo.osom.memory.MMU;
 class OperationLD_r_n extends Operation {
 
 	private final boolean lo;
-	private Register register;
+	private final Register register;
 
 	OperationLD_r_n(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
 
@@ -16,15 +16,11 @@ class OperationLD_r_n extends Operation {
 
 	@Override
 	void execute() {
-		int address = cpu.PC.getValue() + 1;
-		int value = mmu.getByte(address);
-		if (debug) {
-			printByte("LD " + register.getName(lo) + "," + value, value);
-		}
+		int value = mmu.getByte(cpu.PC.getValue() + 1);
 		if (this.lo) {
-			register.setLo(mmu.getByte(address));
+			register.setLo(value);
 		} else {
-			register.setHi(mmu.getByte(address));
+			register.setHi(value);
 		}
 	}
 }
