@@ -22,7 +22,7 @@ public class Z80Cpu {
 	private static final int INTERRUPT_BIT_TIMER = 2;
 	private static final int INTERRUPT_BIT_JOYPAD = 4;
 
-	private static int timerCounter = 1024; // Default. 4096 hz
+	private int timerCounter = 1024; // Default. 4096 hz
 	private static final int TIMER_ENABLED_BIT = 2;
 
 	private boolean interruptionsEnabled = false;
@@ -50,10 +50,10 @@ public class Z80Cpu {
 	final Register DE = new Register("DE");
 	final Register HL = new Register("HL");
 
-	static byte FLAG_ZERO = 7;
-	static byte FLAG_SUBTRACT = 6;
-	static byte FLAG_HALF_CARRY = 5;
-	static byte FLAG_CARRY = 4;
+	static final byte FLAG_ZERO = 7;
+	static final byte FLAG_SUBTRACT = 6;
+	static final byte FLAG_HALF_CARRY = 5;
+	static final byte FLAG_CARRY = 4;
 
 	public final Register PC = new Register("PC");
 	final Register SP = new Register("SP");

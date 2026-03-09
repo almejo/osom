@@ -3,26 +3,22 @@ package com.almejo.osom.gpu;
 import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.memory.MMU;
+import lombok.Getter;
+import lombok.Setter;
 
 public class GPU {
 	private int line = 1;
 	private int clock = 0;
-	private static final int[][] pixels = new int[160][144];
-	private Z80Cpu cpu;
+	@Getter
+    private final int[][] pixels = new int[160][144];
+	@Setter
+    private Z80Cpu cpu;
 	private MMU mmu;
 
 	public GPU() {
 	}
 
-	public int[][] getPixels() {
-		return pixels;
-	}
-
-	public void setCpu(Z80Cpu cpu) {
-		this.cpu = cpu;
-	}
-
-	public void setMmu(MMU mmu) {
+    public void setMmu(MMU mmu) {
 		this.mmu = mmu;
 		mmu.setScanline(line);
 	}
