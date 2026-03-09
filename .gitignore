@@ -59,3 +59,7 @@ roms/**
 .settings/
 bin/
 
+.claude/**
+build/**
+_bmad/
+_bmad-output/
