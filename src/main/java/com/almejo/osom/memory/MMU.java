@@ -30,7 +30,11 @@ public class MMU {
 
 	public MMU(boolean useBios) throws IOException {
 		this.useBios = useBios;
-		bios = ByteUtils.getBytes(Files.readAllBytes(Paths.get("bios/bios.bin")));
+		if (useBios) {
+			bios = ByteUtils.getBytes(Files.readAllBytes(Paths.get("bios/bios.bin")));
+		} else {
+			bios = new int[0];
+		}
 	}
 
 	public void addCartridge(Cartridge cartridge) {

@@ -103,3 +103,18 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/test/groovy/com/almejo/osom/CorePresentationSeparationSpec.groovy` — New: 2 tests verifying no `javax.swing` or `java.awt` imports in core packages (`cpu/`, `memory/`, `gpu/`) and `Emulator.java`
 - `src/test/groovy/com/almejo/osom/cpu/OpcodeUniquenessSpec.groovy` — New: 2 tests verifying all standard and CB-prefixed opcodes have unique codes with collision details in error messages
 - `src/test/groovy/com/almejo/osom/cpu/CBPrefixSeparationSpec.groovy` — New: 2 tests verifying CB operations are only in the CB dispatch map and standard map contains no CB operations
+
+---
+
+### 2026-03-10 — Determinism Verification & Test Harness (Story 2.3)
+
+**What:** Created a headless test harness (`TestEmulator`) for running the emulator without Swing, and a determinism verification test that proves two identical emulation runs produce the same framebuffer output.
+
+**Hardware concept:** The Game Boy's execution is purely cycle-driven — no wall-clock, no RNG, no thread-dependent state. Given identical initial state and identical ROM input, the CPU, GPU, and memory produce identical output every time. This determinism is fundamental to the hardware and enables reliable regression testing.
+
+**What we learned:** The `MMU` constructor was unconditionally reading `bios/bios.bin` even when `useBios=false`, making headless no-bios tests impossible without the BIOS file present. The fix (conditional read) was trivial but blocked all headless testing. Spock's `@Requires` annotation with a closure (e.g., `@Requires({ new File('roms/tetris.gb').exists() })`) cleanly handles tests that depend on gitignored resources — the test compiles and is discovered but skips gracefully when the resource is absent.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/memory/MMU.java` — Made BIOS file read conditional on `useBios` flag; initializes empty `int[0]` array when `useBios=false`
+- `src/test/groovy/com/almejo/osom/TestEmulator.groovy` — New: headless emulator helper with `runFrames(count)` and `computeFramebufferChecksum()` using CRC32
+- `src/test/groovy/com/almejo/osom/DeterminismVerificationSpec.groovy` — New: conditional test comparing two 300-frame Tetris runs for identical CRC32 checksums and cycle counts
