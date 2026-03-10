@@ -1,5 +1,7 @@
 package com.almejo.osom.cpu;
 
+import static com.almejo.osom.cpu.BitUtils.toSignedByte;
+
 import com.almejo.osom.memory.MMU;
 
 abstract class OperationJR_cc_n extends OperationConditional {

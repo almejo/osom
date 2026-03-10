@@ -1,6 +1,5 @@
 package com.almejo.osom.cpu;
 
-
 import com.almejo.osom.memory.MMU;
 import lombok.Getter;
 
@@ -30,12 +29,4 @@ public abstract class Operation {
 	}
 
 	abstract void execute();
-
-	int toSignedByte(int val) {
-		int delta = val;
-		if (delta > 127) {
-			delta = -1 * (0xff - delta + 1);
-		}
-		return delta;
-	}
 }

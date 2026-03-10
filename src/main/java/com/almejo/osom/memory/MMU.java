@@ -1,5 +1,6 @@
 package com.almejo.osom.memory;
 
+import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.cpu.Z80Cpu;
 
 import java.io.IOException;
@@ -57,8 +58,7 @@ public class MMU {
 			ram[address] = value;
 		} else if (address == INTERRUPT_CONTROLLER_ADDRESS) {
 			ram[address] = value;
-		} else if (address == 0xFF80) {
-		} else if (address > 0xFF80 && address <= 0xFFFF) {
+		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			ram[address] = value;
 		} else if (address == IO_REGISTER) {
 			ram[IO_REGISTER] = value;
@@ -88,12 +88,12 @@ public class MMU {
 	}
 
 	private void setFrequency(int value) {
-		ram[TIMER_ADDRESS] = value;
+		ram[TIMER_CONTROLLER] = value;
 		this.cpu.updateTimerCounter(value);
 	}
 
 	private int getTimerFrequency() {
-		return ram[TIMER_ADDRESS] & 3;
+		return ram[TIMER_CONTROLLER] & 3;
 	}
 
 	public int getByte(int address) {
@@ -118,7 +118,11 @@ public class MMU {
 			return getIOState();
 		} else if (address == LCD_LINE_COUNTER
 				|| address == LCD_CONTROLLER
-				|| address == INTERRUPT_CONTROLLER_ADDRESS) {
+				|| address == INTERRUPT_CONTROLLER_ADDRESS
+				|| address == DIVIDER_REGISTER_ADDRESS
+				|| address == TIMER_ADDRESS
+				|| address == TIMER_MODULATOR
+				|| address == TIMER_CONTROLLER) {
 			return ram[address];
 		} else if (address > 0xFF00 && address <= 0xFF7F) {
 			return 0;
@@ -149,15 +153,7 @@ public class MMU {
 	}
 
 	public int getByteSigned(int address) {
-		return toSignedByte(getByte(address));
-	}
-
-	private int toSignedByte(int val) {
-		int delta = val;
-		if (delta > 127) {
-			delta = -1 * (0xff - delta);
-		}
-		return delta;
+		return BitUtils.toSignedByte(getByte(address));
 	}
 
 	public void setCpu(Z80Cpu cpu) {

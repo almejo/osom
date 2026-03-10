@@ -129,3 +129,28 @@ This is an append-only learning log documenting decisions, discoveries, and less
 
 **Changes:**
 - `docs/architecture.md` — New: comprehensive architecture documentation covering overview, architecture layers, component responsibilities (Z80Cpu, Operation, ALU, MMU, GPU, FrameBuffer, Emulator, EmulatorApp, LCDScreen), main emulation loop, data flow diagram, subsystem communication map, memory map, CPU instruction architecture, interrupt system, timer subsystem, testing architecture, and object creation graph
+
+---
+
+### 2026-03-10 — Pre-existing Bug Fixes: MMU & Timer (Story 3-P1)
+
+**What:** Fixed 4 pre-existing bugs in MMU and timer subsystem identified during the Epic 2 retrospective, plus 2 additional issues discovered during implementation.
+
+**Hardware concept:** The Game Boy timer subsystem has 3 I/O registers: TIMA (0xFF05, counter), TMA (0xFF06, modulo), and TAC (0xFF07, controller — bits 0-1 select frequency, bit 2 enables timer). High RAM (HRAM, 0xFF80-0xFFFE) is 127 bytes of fast-access memory used by `LDH` instructions. Two's complement conversion for signed bytes follows: for `n > 127`, `signed = n - 256`.
+
+**What we learned:**
+1. **Bug origin tracing matters:** The `toSignedByte()` off-by-one existed independently in both `MMU.java` and `Operation.java`. The Operation copy was correct; the MMU copy was wrong. Having two independent implementations of the same formula is a duplication bug waiting to happen — consolidated both into `BitUtils.toSignedByte()` as a single source of truth.
+2. **I/O register catch-all hides bugs:** `MMU.getByte()` had a catch-all `return 0` for all I/O registers in 0xFF01-0xFF7F not explicitly handled. This silently masked the timer register bugs — `isClockEnabled()` always received 0, making both the parameter-swap bug and the wrong-register bug invisible during execution. The catch-all needed explicit entries for timer registers (TIMA, TMA, TAC) and the divider register (0xFF04).
+3. **Groovy `@` operator:** The `@` operator accesses private *fields* directly (e.g., `mmu.@ram[addr]`), but does NOT work on private *methods*. Groovy can call private methods directly without any special syntax (e.g., `cpu.isClockEnabled()`).
+
+**Changes:**
+- `src/main/java/com/almejo/osom/memory/MMU.java` — Bug 1: fixed `toSignedByte()` off-by-one (`0xff - delta` → `0xff - delta + 1`), then replaced with `BitUtils.toSignedByte()` call. Bug 2: merged empty `== 0xFF80` branch with `> 0xFF80` into `>= 0xFF80` for HRAM writes. Bug 3: changed `setFrequency()` and `getTimerFrequency()` to use `TIMER_CONTROLLER` instead of `TIMER_ADDRESS`. Additional: added timer registers and divider register to `getByte()` explicit read path.
+- `src/main/java/com/almejo/osom/cpu/Z80Cpu.java` — Bug 4: swapped parameters in `isClockEnabled()` from `isBitSetted(TIMER_ENABLED_BIT, value)` to `isBitSetted(value, TIMER_ENABLED_BIT)`.
+- `src/main/java/com/almejo/osom/cpu/BitUtils.java` — Added `toSignedByte(int value)` as shared utility.
+- `src/main/java/com/almejo/osom/cpu/Operation.java` — Replaced inline `toSignedByte()` with delegation to `BitUtils.toSignedByte()`.
+- `src/test/groovy/com/almejo/osom/memory/ToSignedByteSpec.groovy` — New: 7 test cases (0, 1, 127, 128→-128, 200→-56, 254→-2, 255→-1)
+- `src/test/groovy/com/almejo/osom/memory/HighRAMSpec.groovy` — New: 4 test cases (write/read 0xFF80, 0xFF81, 0xFFFE, default zero)
+- `src/test/groovy/com/almejo/osom/memory/TimerFrequencySpec.groovy` — New: 3 test cases (TAC write doesn't corrupt TIMA, TAC stores correctly, frequency detection reads TAC not TIMA)
+- `src/test/groovy/com/almejo/osom/cpu/TimerEnableSpec.groovy` — New: 4 test cases (TAC bit 2 clear/set, 0x04, 0x00)
+- `src/main/java/com/almejo/osom/cpu/OperationJR_cc_n.java` — Added `static import BitUtils.toSignedByte` replacing inherited wrapper method
+- `src/test/groovy/com/almejo/osom/cpu/ToSignedByteSpec.groovy` — Moved from `memory/` to `cpu/`, now tests `BitUtils.toSignedByte()` directly

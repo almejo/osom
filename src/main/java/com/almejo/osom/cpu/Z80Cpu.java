@@ -340,7 +340,7 @@ public class Z80Cpu {
 	}
 
 	private boolean isClockEnabled() {
-		return BitUtils.isBitSetted(TIMER_ENABLED_BIT, mmu.getByte(MMU.TIMER_CONTROLLER));
+		return BitUtils.isBitSetted(mmu.getByte(MMU.TIMER_CONTROLLER), TIMER_ENABLED_BIT);
 	}
 
 	public void updateTimerCounter(int value) {

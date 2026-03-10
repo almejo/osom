@@ -12,4 +12,11 @@ public class BitUtils {
 	public static boolean isBitSetted(int value, int flag) {
 		return (value & 1 << flag) > 0;
 	}
+
+	public static int toSignedByte(int value) {
+		if (value > 127) {
+			return value - 256;
+		}
+		return value;
+	}
 }
