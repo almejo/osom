@@ -118,3 +118,14 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/main/java/com/almejo/osom/memory/MMU.java` — Made BIOS file read conditional on `useBios` flag; initializes empty `int[0]` array when `useBios=false`
 - `src/test/groovy/com/almejo/osom/TestEmulator.groovy` — New: headless emulator helper with `runFrames(count)` and `computeFramebufferChecksum()` using CRC32
 - `src/test/groovy/com/almejo/osom/DeterminismVerificationSpec.groovy` — New: conditional test comparing two 300-frame Tetris runs for identical CRC32 checksums and cycle counts
+
+---
+
+### 2026-03-10 — Architecture Documentation (Story 2.4)
+
+**What:** Created developer-facing architecture documentation at `docs/architecture.md` describing the emulation loop, component responsibilities, data flow, memory map, and testing architecture.
+
+**What we learned:** The Architecture Decision Document (ADD) in planning artifacts described the *planned* interrupt signaling mechanism (D11 — routing through MMU), but the *actual* code routes interrupt requests through `Z80Cpu.requestInterrupt()`. Writing documentation against the actual source code rather than planning artifacts caught this discrepancy. Lesson: always verify documentation against current code, not design documents — the code is the source of truth, especially during iterative development where not all planned decisions have been implemented yet.
+
+**Changes:**
+- `docs/architecture.md` — New: comprehensive architecture documentation covering overview, architecture layers, component responsibilities (Z80Cpu, Operation, ALU, MMU, GPU, FrameBuffer, Emulator, EmulatorApp, LCDScreen), main emulation loop, data flow diagram, subsystem communication map, memory map, CPU instruction architecture, interrupt system, timer subsystem, testing architecture, and object creation graph
