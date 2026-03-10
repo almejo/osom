@@ -88,3 +88,18 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/main/java/com/almejo/osom/DataBus.java` — Deleted (empty unused placeholder)
 - `src/test/groovy/com/almejo/osom/gpu/FrameBufferSpec.groovy` — New: 4 tests for pixel storage, dimensions, defaults, and instance isolation
 - `src/test/groovy/com/almejo/osom/gpu/GPUInstanceIsolationSpec.groovy` — Updated to use FrameBuffer-based isolation pattern
+
+---
+
+### 2026-03-09 — Structural Tests (Story 2.2)
+
+**What:** Created three structural test specs that enforce architectural boundaries and opcode registration integrity on every build.
+
+**Hardware concept:** The Game Boy CPU uses a prefix byte (0xCB) to extend its instruction set — standard opcodes use one dispatch table, CB-prefixed opcodes use another. Mixing them would cause instruction decoding errors identical to real hardware bugs where the wrong instruction executes.
+
+**What we learned:** Groovy's `@` operator for private field access (e.g., `cpu.@operations`) combined with Groovy collection methods like `groupBy` and `findAll` makes structural tests concise and readable. For the core/presentation boundary test, `File.eachFileRecurse(FileType.FILES)` is the idiomatic Groovy way to scan source directories. Using `Stub(MMU)` instead of a real MMU avoids needing the BIOS file during tests.
+
+**Changes:**
+- `src/test/groovy/com/almejo/osom/CorePresentationSeparationSpec.groovy` — New: 2 tests verifying no `javax.swing` or `java.awt` imports in core packages (`cpu/`, `memory/`, `gpu/`) and `Emulator.java`
+- `src/test/groovy/com/almejo/osom/cpu/OpcodeUniquenessSpec.groovy` — New: 2 tests verifying all standard and CB-prefixed opcodes have unique codes with collision details in error messages
+- `src/test/groovy/com/almejo/osom/cpu/CBPrefixSeparationSpec.groovy` — New: 2 tests verifying CB operations are only in the CB dispatch map and standard map contains no CB operations

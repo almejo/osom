@@ -179,8 +179,22 @@ public class Z80Cpu {
 
 	private void addOpcode(Operation operation) {
 		if (operation instanceof OperationCB) {
+			if (operationsCB.containsKey(operation.code)) {
+				throw new IllegalStateException(String.format(
+						"CB opcode collision at 0x%02X: %s vs %s",
+						operation.code,
+						operationsCB.get(operation.code).getClass().getSimpleName(),
+						operation.getClass().getSimpleName()));
+			}
 			operationsCB.put(operation.code, operation);
 			return;
+		}
+		if (operations.containsKey(operation.code)) {
+			throw new IllegalStateException(String.format(
+					"Opcode collision at 0x%02X: %s vs %s",
+					operation.code,
+					operations.get(operation.code).getClass().getSimpleName(),
+					operation.getClass().getSimpleName()));
 		}
 		operations.put(operation.code, operation);
 	}
