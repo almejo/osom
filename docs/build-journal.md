@@ -67,3 +67,24 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `Z80Cpu.java` — Changed `private static int timerCounter` to `private int timerCounter`; added `final` to `FLAG_ZERO`, `FLAG_SUBTRACT`, `FLAG_HALF_CARRY`, `FLAG_CARRY`
 - `src/test/groovy/com/almejo/osom/gpu/GPUInstanceIsolationSpec.groovy` — New: GPU pixel array isolation test
 - `src/test/groovy/com/almejo/osom/cpu/CpuInstanceIsolationSpec.groovy` — New: Z80Cpu timer counter isolation test with concrete value assertions
+
+---
+
+### 2026-03-09 — Core/Presentation Split (Story 2.1)
+
+**What:** Separated the emulation core from the Swing UI layer, introducing FrameBuffer as the pixel buffer contract and creating a new `ui/` package for presentation code.
+
+**Hardware concept:** On real Game Boy hardware, the GPU writes pixels to a framebuffer that the LCD reads independently. This refactoring mirrors that separation — `FrameBuffer` sits between GPU (writer) and LCDScreen (reader), matching the hardware's pixel buffer concept.
+
+**What we learned:** When refactoring involves a dependency chain across multiple files (GPU → FrameBuffer → LCDScreen → EmulatorApp → Main), the code will not compile at intermediate steps. The tasks must be executed in dependency order, and compilation only succeeds once the full chain is wired. Planning the dependency graph upfront (as the story did) prevented wasted time on compilation errors.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/gpu/FrameBuffer.java` — New: pixel buffer with `setPixel(x, y, color)` and `getPixels()`, WIDTH/HEIGHT constants
+- `src/main/java/com/almejo/osom/gpu/GPU.java` — Replaced `int[][] pixels` field with `FrameBuffer frameBuffer` via `@Setter`; `renderBackground()` now calls `frameBuffer.setPixel()`
+- `src/main/java/com/almejo/osom/Emulator.java` — Removed all Swing/AWT imports; extracted UI code to EmulatorApp; added `initialize()` + `runFrame()` pattern; accepts FrameBuffer and wires to GPU
+- `src/main/java/com/almejo/osom/ui/EmulatorApp.java` — New: owns JFrame, outer loop, frame throttling, graceful shutdown via `volatile boolean running`
+- `src/main/java/com/almejo/osom/ui/LCDScreen.java` — Moved from root package to `ui/`; constructor takes FrameBuffer instead of GPU; removed self-calling `repaint()`
+- `src/main/java/com/almejo/osom/Main.java` — Changed to instantiate `EmulatorApp` instead of `Emulator`
+- `src/main/java/com/almejo/osom/DataBus.java` — Deleted (empty unused placeholder)
+- `src/test/groovy/com/almejo/osom/gpu/FrameBufferSpec.groovy` — New: 4 tests for pixel storage, dimensions, defaults, and instance isolation
+- `src/test/groovy/com/almejo/osom/gpu/GPUInstanceIsolationSpec.groovy` — Updated to use FrameBuffer-based isolation pattern

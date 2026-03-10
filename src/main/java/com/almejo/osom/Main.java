@@ -1,5 +1,6 @@
 package com.almejo.osom;
 
+import com.almejo.osom.ui.EmulatorApp;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -65,7 +66,7 @@ public class Main {
 		boolean bios = !commandLine.hasOption("no-bios");
 
 		try {
-			new Emulator().run(bios, filename);
+			new EmulatorApp().run(bios, filename);
 		} catch (IllegalStateException exception) {
 			System.exit(1);
 		}

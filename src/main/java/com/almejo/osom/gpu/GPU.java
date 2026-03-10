@@ -3,14 +3,13 @@ package com.almejo.osom.gpu;
 import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.memory.MMU;
-import lombok.Getter;
 import lombok.Setter;
 
 public class GPU {
 	private int line = 1;
 	private int clock = 0;
-	@Getter
-    private final int[][] pixels = new int[160][144];
+	@Setter
+	private FrameBuffer frameBuffer;
 	@Setter
     private Z80Cpu cpu;
 	private MMU mmu;
@@ -117,7 +116,7 @@ public class GPU {
 
 			int color = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
 			color |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
-			pixels[pixel][line] = color;
+			frameBuffer.setPixel(pixel, line, color);
 		}
 	}
 
