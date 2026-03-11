@@ -154,3 +154,23 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/test/groovy/com/almejo/osom/cpu/TimerEnableSpec.groovy` — New: 4 test cases (TAC bit 2 clear/set, 0x04, 0x00)
 - `src/main/java/com/almejo/osom/cpu/OperationJR_cc_n.java` — Added `static import BitUtils.toSignedByte` replacing inherited wrapper method
 - `src/test/groovy/com/almejo/osom/cpu/ToSignedByteSpec.groovy` — Moved from `memory/` to `cpu/`, now tests `BitUtils.toSignedByte()` directly
+
+---
+
+### 2026-03-10 — Regression Diagnosis & Git Forensics (Story 3-P2)
+
+**What:** Analyzed all behavioral changes between commit `3748f3e` ("First boot to tetris credits!!!") and HEAD, recreated the historical baseline, applied P1 bug fixes, and tested whether Tetris graphical glitches were resolved.
+
+**Hardware concept:** The Game Boy GPU cycles through 4 modes per scanline: OAM Search (mode 2, 80 cycles), Pixel Transfer (mode 3, 172 cycles), H-Blank (mode 0, 204 cycles), and V-Blank (mode 1, 4560 cycles total for lines 144-153). Each scanline takes exactly 456 cycles. The LCD STAT register (0xFF41) reports the current mode, which games use for timing-critical VRAM writes.
+
+**What we learned:**
+1. **GPU FSM was rewritten in commit `3a040c6`** ("better gpu timming") — the correct 4-state machine was replaced with a simplified line-counter that fires every 456 cycles without mode tracking. This eliminates LCD mode reporting and changes draw timing. Story 3.4 should restore the 4-state FSM from commit `4e9e680` (not `3748f3e`, which had a hardcoded `getControlInfo()`).
+2. **P1 fixes don't fix the graphical glitches.** Applying Bugs 1, 3, 4 to the baseline produced no visible change in Tetris credits rendering. The intermittent blank frames (zeros alternating with the display) persist. This means the glitches are intrinsic to the GPU rendering logic, not caused by MMU/timer bugs.
+3. **Bug 2 (0xFF80 write discard) didn't exist at `3748f3e`.** The baseline used a separate `zero[]` array for HRAM with `>= 0xFF80`. The empty branch was introduced later when HRAM was consolidated into `ram[]`. Only 3 of 4 P1 fixes were applicable to the baseline.
+4. **Interrupts were non-functional at `3748f3e`.** `checkInterrupts()` had `System.exit(0)` — the emulator terminated on the first interrupt. Additionally, `INTERRUPT_CONTROLLER_ADDRESS` had no handler in `setByte()`/`getByte()`, so interrupt flags were silently dropped. The timer bugs were invisible because the I/O catch-all returned 0 for all timer registers. Tetris credits worked purely through cycle-driven GPU rendering without any interrupt-based synchronization.
+5. **`getControlInfo()` was hardcoded to `return 145`** at `3748f3e`. This was changed to read `MMU.LCD_CONTROLLER` in `4e9e680`. The hardcoded value (0x91) matches the boot initialization, so it's functionally equivalent for Tetris credits but would break any game that modifies the LCD controller register.
+
+**Changes:**
+- `docs/regression-analysis.md` — New: comprehensive 7-section analysis document
+- `~/git/osom-old/` — Recreated from `git archive 3748f3e`, upgraded build.gradle for Java 17/Gradle 7.6, P1 Bugs 1/3/4 applied
+- `docs/build-journal.md` — This entry
