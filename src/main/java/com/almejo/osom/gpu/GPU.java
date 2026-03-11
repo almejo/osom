@@ -2,11 +2,29 @@ package com.almejo.osom.gpu;
 
 import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.memory.MMU;
+import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class GPU {
-	private int line = 1;
+	private static final int H_BLANK = 0;
+	private static final int V_BLANK = 1;
+	private static final int SPRITES = 2;
+	private static final int GRAPHICS = 3;
+
+	private static final int OAM_CYCLES = 80;
+	private static final int RENDERING_CYCLES = 172;
+	private static final int HBLANK_CYCLES = 204;
+	private static final int SCANLINE_CYCLES = 456;
+	private static final int VISIBLE_LINES = 144;
+	private static final int VBLANK_LINES = 10;
+
+	private int line = 0;
 	private int clock = 0;
+	@Getter
+	private int mode = SPRITES;
+	@Getter
 	@Setter
 	private FrameBuffer frameBuffer;
 	private MMU mmu;
@@ -14,9 +32,10 @@ public class GPU {
 	public GPU() {
 	}
 
-    public void setMmu(MMU mmu) {
+	public void setMmu(MMU mmu) {
 		this.mmu = mmu;
-		mmu.setScanline(line);
+		mmu.setScanline(0);
+		updateStatMode();
 	}
 
 	public void update(int cycles) {
@@ -25,23 +44,99 @@ public class GPU {
 		}
 		clock += cycles;
 
-		if (clock >= 456) {
-			clock = 0;
+		int threshold = currentThreshold();
+		while (clock >= threshold) {
+			clock -= threshold;
 
-			if (line < 145) {
-				drawLine();
-				if (line == 144) {
-					mmu.requestInterrupt(MMU.INTERRUPT_VBLANK);
-				}
-				line++;
-				mmu.setScanline(line);
-			} else if (line >= 145 && line < 154) {
-				mmu.setScanline(0);
-				line++;
-			} else {
-				line = 1;
-				mmu.setScanline(line);
+			switch (mode) {
+				case SPRITES:
+					mode = GRAPHICS;
+					break;
+				case GRAPHICS:
+					drawLine();
+					mode = H_BLANK;
+					fireStatInterruptIfEnabled();
+					break;
+				case H_BLANK:
+					line++;
+					mmu.setScanline(line);
+					checkLyCoincidence();
+					if (line == VISIBLE_LINES) {
+						mode = V_BLANK;
+						mmu.requestInterrupt(MMU.INTERRUPT_VBLANK);
+					} else {
+						mode = SPRITES;
+					}
+					fireStatInterruptIfEnabled();
+					break;
+				case V_BLANK:
+					line++;
+					if (line >= VISIBLE_LINES + VBLANK_LINES) {
+						line = 0;
+						mode = SPRITES;
+						mmu.setScanline(line);
+						checkLyCoincidence();
+						fireStatInterruptIfEnabled();
+					} else {
+						mmu.setScanline(line);
+						checkLyCoincidence();
+					}
+					break;
+				default:
+					break;
 			}
+			updateStatMode();
+			threshold = currentThreshold();
+		}
+	}
+
+	private void updateStatMode() {
+		mmu.setStatModeBits(mode);
+	}
+
+	private void fireStatInterruptIfEnabled() {
+		int stat = mmu.getByte(MMU.LCD_STATUS);
+		boolean shouldFire = false;
+		// Pan Docs: STAT bit 3 = H-Blank interrupt, bit 4 = V-Blank interrupt, bit 5 = OAM interrupt
+		switch (mode) {
+			case H_BLANK:
+				shouldFire = BitUtils.isBitSetted(stat, 3);
+				break;
+			case V_BLANK:
+				shouldFire = BitUtils.isBitSetted(stat, 4);
+				break;
+			case SPRITES:
+				shouldFire = BitUtils.isBitSetted(stat, 5);
+				break;
+			default:
+				break;
+		}
+		if (shouldFire) {
+			mmu.requestInterrupt(MMU.INTERRUPT_LCD_STAT);
+		}
+	}
+
+	private void checkLyCoincidence() {
+		int lyc = mmu.getByte(MMU.LCD_LY_COMPARE);
+		boolean coincidence = (line == lyc);
+		mmu.setStatCoincidenceFlag(coincidence);
+		if (coincidence && BitUtils.isBitSetted(mmu.getByte(MMU.LCD_STATUS), 6)) {
+			mmu.requestInterrupt(MMU.INTERRUPT_LCD_STAT);
+		}
+	}
+
+	private int currentThreshold() {
+		switch (mode) {
+			case SPRITES:
+				return OAM_CYCLES;
+			case GRAPHICS:
+				return RENDERING_CYCLES;
+			case H_BLANK:
+				return HBLANK_CYCLES;
+			case V_BLANK:
+				return SCANLINE_CYCLES;
+			default:
+				return SCANLINE_CYCLES;
 		}
 	}
 
@@ -54,9 +149,6 @@ public class GPU {
 	}
 
 	private void drawLine() {
-		if (mmu.getByte(MMU.LCD_LINE_COUNTER) > 143) {
-			return;
-		}
 		int control = getControlInfo();
 		if (backgroundEnabled(control)) {
 			renderBackground(control);
@@ -74,9 +166,8 @@ public class GPU {
 	}
 
 	private void renderBackground(int control) {
-		int scrollY = mmu.getByte(0xFF43);
-		int scrollX = mmu.getByte(0xFF42);
-		int line = mmu.getByte(MMU.LCD_LINE_COUNTER);
+		int scrollY = mmu.getByte(MMU.LCD_SCROLL_Y);
+		int scrollX = mmu.getByte(MMU.LCD_SCROLL_X);
 		int tilesData;
 		boolean useUnsignedIdentifier = true;
 		int mapLayout;
@@ -92,19 +183,16 @@ public class GPU {
 			mapLayout = 0x9800;
 		}
 
-		int posY = scrollY + line;
+		int posY = (scrollY + line) & 0xFF;
 		int tileRow = (posY / 8) * 32;
 		for (int pixel = 0; pixel < 160; pixel++) {
-			int xPos = pixel + scrollX;
-			// which of the 32 horizontal tiles does this xPos fall within?
+			int xPos = (pixel + scrollX) & 0xFF;
 			int tileColumn = (xPos / 8);
 
-			// get the tile identity number. Remember it can be signed
-			// or unsigned
 			int tileAddress = mapLayout + tileRow + tileColumn;
 			int tileIndex = useUnsignedIdentifier ? mmu.getByte(tileAddress) : mmu.getByteSigned(tileAddress);
 			int tileLocation = tilesData + (tileIndex + (useUnsignedIdentifier ? 0 : 128)) * 16;
-			int tileLine = (line % 8) * 2;// 2 bytes
+			int tileLine = (posY % 8) * 2;
 			int byte1 = mmu.getByte(tileLocation + tileLine);
 			int byte2 = mmu.getByte(tileLocation + tileLine + 1);
 			int bit = xPos % 8;

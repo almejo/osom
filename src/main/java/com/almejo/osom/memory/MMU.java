@@ -26,8 +26,12 @@ public class MMU {
 	public static final int TIMER_MODULATOR = 0xFF06;
 	public static final int TIMER_CONTROLLER = 0xFF07;
 
-	public static final int LCD_LINE_COUNTER = 0xFF44;
 	public static final int LCD_CONTROLLER = 0xFF40;
+	public static final int LCD_STATUS = 0xFF41;
+	public static final int LCD_SCROLL_Y = 0xFF42;
+	public static final int LCD_SCROLL_X = 0xFF43;
+	public static final int LCD_LINE_COUNTER = 0xFF44;
+	public static final int LCD_LY_COMPARE = 0xFF45;
 
 	private boolean useBios;
 	private final int[] ram = new int[0xffff + 1];
@@ -64,6 +68,11 @@ public class MMU {
 			ram[address] = 0;
 		} else if (address == LCD_CONTROLLER) {
 			ram[address] = value;
+		} else if (address == LCD_STATUS) {
+			// Only write bits 3-6 (interrupt enables); bits 0-2 are read-only (mode + coincidence flag)
+			ram[LCD_STATUS] = (value & 0x78) | (ram[LCD_STATUS] & 0x07);
+		} else if (address == LCD_SCROLL_Y || address == LCD_SCROLL_X || address == LCD_LY_COMPARE) {
+			ram[address] = value;
 		} else if (address == INTERRUPT_CONTROLLER_ADDRESS) {
 			ram[address] = value;
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
@@ -80,6 +89,8 @@ public class MMU {
 			ram[address] = value;
 		} else if (address >= 0xE000 && address <= 0xFDFF) {
 			ram[address - 0x2000] = value;
+		} else {
+			log.warn("Unhandled write: address=0x{} value=0x{}", String.format("%04X", address), String.format("%02X", value));
 		}
 	}
 
@@ -122,8 +133,14 @@ public class MMU {
 			return 0;
 		} else if (address == IO_REGISTER) {
 			return getIOState();
+		} else if (address == LCD_STATUS) {
+			// Bit 7 always reads as 1 on real hardware
+			return ram[LCD_STATUS] | 0x80;
 		} else if (address == LCD_LINE_COUNTER
 				|| address == LCD_CONTROLLER
+				|| address == LCD_SCROLL_Y
+				|| address == LCD_SCROLL_X
+				|| address == LCD_LY_COMPARE
 				|| address == INTERRUPT_CONTROLLER_ADDRESS
 				|| address == DIVIDER_REGISTER_ADDRESS
 				|| address == TIMER_ADDRESS
@@ -131,6 +148,7 @@ public class MMU {
 				|| address == TIMER_CONTROLLER) {
 			return ram[address];
 		} else if (address > 0xFF00 && address <= 0xFF7F) {
+			log.warn("Unhandled read: address=0x{} returning 0", String.format("%04X", address));
 			return 0;
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			return ram[address];
@@ -143,7 +161,7 @@ public class MMU {
 	}
 
 	private int getIOState() {
-        return 0xDF;
+		return 0xDF;
 	}
 
 	public int getWord(int address) {
@@ -174,6 +192,18 @@ public class MMU {
 
 	public void setScanline(int lineNumber) {
 		ram[LCD_LINE_COUNTER] = lineNumber;
+	}
+
+	public void setStatModeBits(int mode) {
+		ram[LCD_STATUS] = (ram[LCD_STATUS] & 0xFC) | (mode & 0x03);
+	}
+
+	public void setStatCoincidenceFlag(boolean coincidence) {
+		if (coincidence) {
+			ram[LCD_STATUS] = ram[LCD_STATUS] | 0x04;
+		} else {
+			ram[LCD_STATUS] = ram[LCD_STATUS] & ~0x04;
+		}
 	}
 
 	public void requestInterrupt(int bit) {
