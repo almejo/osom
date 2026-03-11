@@ -316,8 +316,8 @@ public class Z80Cpu {
 
 	private void updateDividerRegister(int cycles) {
 		dividerCounter += cycles;
-		if (dividerCounter >= 255) {
-			dividerCounter = 0;
+		while (dividerCounter >= 256) {
+			dividerCounter -= 256;
 			this.mmu.incrementDividerRegister();
 		}
 	}
@@ -325,13 +325,14 @@ public class Z80Cpu {
 	private void updateTimerRegister(int cycles) {
 		if (isClockEnabled()) {
 			timerCounter -= cycles;
-			if (timerCounter < 0) {
+			while (timerCounter <= 0) {
 				if (timerIsAboutToOverflow()) {
 					mmu.setByte(MMU.TIMER_ADDRESS, mmu.getByte(MMU.TIMER_MODULATOR));
 					mmu.requestInterrupt(MMU.INTERRUPT_TIMER);
 				} else {
 					mmu.setByte(MMU.TIMER_ADDRESS, mmu.getByte(MMU.TIMER_ADDRESS) + 1);
 				}
+				timerCounter += convertToTimerCycles(mmu.getByte(MMU.TIMER_CONTROLLER) & 0x03);
 			}
 		}
 	}
@@ -349,8 +350,8 @@ public class Z80Cpu {
 		timerCounter = convertToTimerCycles(value);
 	}
 
-	private int convertToTimerCycles(int value) {
-		switch (value) {
+	int convertToTimerCycles(int value) {
+		switch (value & 0x03) {
 			case 0:
 				return this.cyclesPerSecond / 4096;
 			case 1:

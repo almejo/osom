@@ -70,6 +70,8 @@ public class MMU {
 			ram[address] = value;
 		} else if (address == IO_REGISTER) {
 			ram[IO_REGISTER] = value;
+		} else if (address == TIMER_ADDRESS || address == TIMER_MODULATOR) {
+			ram[address] = value;
 		} else if (address == TIMER_CONTROLLER) {
 			updateTimerFrequency(value);
 		} else if (address == DIVIDER_REGISTER_ADDRESS) {
@@ -90,14 +92,10 @@ public class MMU {
 
 	private void updateTimerFrequency(int value) {
 		int oldFrequency = getTimerFrequency();
-		if (oldFrequency != (value & 3)) {
-			setFrequency(value);
-		}
-	}
-
-	private void setFrequency(int value) {
 		ram[TIMER_CONTROLLER] = value;
-		this.cpu.updateTimerCounter(value);
+		if (oldFrequency != (value & 0x03)) {
+			this.cpu.updateTimerCounter(value & 0x03);
+		}
 	}
 
 	private int getTimerFrequency() {

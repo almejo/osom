@@ -236,3 +236,23 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/test/groovy/com/almejo/osom/cpu/OperationLD_A_r_Spec.groovy` — New: 4 tests for LD A,C (0x79) and LD A,D (0x7A) covering result, flags, and PC advancement
 - `src/test/groovy/com/almejo/osom/HeadlessTetrisRunner.groovy` — New: headless ROM runner for opcode discovery
 - `docs/opcode-reference.md` — Updated 0x7A status to "Yes", coverage to 91/256 standard (35.5%), 96/512 total (18.8%)
+
+---
+
+### 2026-03-11 — Timer System Verification (Story 3.3)
+
+**What:** Fixed 5 compounding bugs in the timer subsystem that made timers fundamentally broken, preventing correct game pacing in Tetris.
+
+**Hardware concept:** The Game Boy has 4 timer registers: DIV (0xFF04, free-running divider incrementing every 256 T-cycles), TIMA (0xFF05, programmable counter), TMA (0xFF06, reload value on overflow), and TAC (0xFF07, control — bit 2 enables timer, bits 0-1 select frequency: 4096/262144/65536/16384 Hz). When TIMA overflows past 0xFF, hardware reloads it from TMA and fires a Timer interrupt (IF bit 2). Tetris uses this for gravity — the timer interrupt drives piece falling speed.
+
+**What we learned:**
+1. **Silent write discard is insidious.** MMU.setByte() had no handler for TIMA (0xFF05) or TMA (0xFF06), so all writes were silently dropped. The CPU's `updateTimerRegister()` correctly called `mmu.setByte(MMU.TIMER_ADDRESS, ...)` to increment TIMA — but the write vanished. TIMA appeared frozen at 0x00 forever. The fix was a 2-line handler: `ram[address] = value`.
+2. **Enable-only TAC changes were lost.** `updateTimerFrequency()` only stored the new TAC value when frequency bits changed. Toggling just the enable bit (e.g., 0x00→0x04) skipped `setFrequency()`, so `ram[TIMER_CONTROLLER]` was never updated and `isClockEnabled()` read stale 0. The fix: always store `ram[TIMER_CONTROLLER] = value` before the frequency comparison.
+3. **Unmasked TAC values caused wrong frequencies.** `convertToTimerCycles()` received the full TAC byte including the enable bit, but its switch only handled 0-3. With the timer enabled (bit 2 set), values 4-7 hit the default case (4096 Hz). Example: TAC=0x05 (262144 Hz intended) → switch receives 5 → default → 4096 Hz. Applied masking at both the call site (`value & 0x03`) and inside `convertToTimerCycles()` for defense in depth.
+4. **timerCounter never reset → runaway TIMA.** After TIMA incremented, `timerCounter` stayed negative and kept decrementing on every CPU step, causing TIMA to increment on every single call. The fix: `timerCounter += convertToTimerCycles(...)` after each increment, using `+=` to preserve cycle overshoot.
+5. **DIV threshold was 255 instead of 256.** Per Pan Docs, DIV increments every 256 T-cycles (4194304/16384=256). The code used `>= 255`. Also changed `dividerCounter = 0` to `dividerCounter -= 256` for overshoot accuracy.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/memory/MMU.java` — Bug 1: added TIMA/TMA write handlers in `setByte()`. Bug 2: rewrote `updateTimerFrequency()` to always store TAC value; inlined `setFrequency()` and passes masked frequency bits (`value & 0x03`) to `cpu.updateTimerCounter()`.
+- `src/main/java/com/almejo/osom/cpu/Z80Cpu.java` — Bug 3: added `& 0x03` mask in `convertToTimerCycles()` switch. Bug 4: added `timerCounter += convertToTimerCycles(...)` reset after TIMA increment/reload; changed condition from `< 0` to `<= 0`. Bug 5: changed divider threshold from `>= 255` to `>= 256`; changed reset from `= 0` to `-= 256`.
+- `src/test/groovy/com/almejo/osom/cpu/TimerSystemSpec.groovy` — New: 23 tests covering TIMA/TMA write handlers, TAC enable-only storage, frequency cycle conversion with masking, timerCounter reset verification, divider threshold accuracy, TIMA overflow with TMA reload and interrupt, all 4 TAC frequencies, TMA=0xFF edge case, timer disabled behavior, and startup defaults.
