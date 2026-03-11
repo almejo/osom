@@ -11,32 +11,29 @@ import java.util.Map;
 
 @Slf4j
 public class Z80Cpu {
-	private static final Map<Integer, Integer> INTERRUPT_ADDRESSES = new HashMap<>();
 	public static final int INTERRUPT_ADDRESS_V_BLANK = 0x40;
 	public static final int INTERRUPT_ADDRESS_LCD = 0x48;
 	public static final int INTERRUPT_ADDRESS_TIMER = 0x50;
+	public static final int INTERRUPT_ADDRESS_SERIAL = 0x58;
 	public static final int INTERRUPT_ADDRESS_JOY_PAD = 0x60;
 
-	private static final int INTERRUPT_BIT_V_BLANK = 0;
-	private static final int INTERRUPT_BIT_LCD = 1;
-	private static final int INTERRUPT_BIT_TIMER = 2;
-	private static final int INTERRUPT_BIT_JOYPAD = 4;
+	private static final Map<Integer, Integer> INTERRUPT_ADDRESSES = Map.of(
+			MMU.INTERRUPT_VBLANK, INTERRUPT_ADDRESS_V_BLANK,
+			MMU.INTERRUPT_LCD_STAT, INTERRUPT_ADDRESS_LCD,
+			MMU.INTERRUPT_TIMER, INTERRUPT_ADDRESS_TIMER,
+			MMU.INTERRUPT_SERIAL, INTERRUPT_ADDRESS_SERIAL,
+			MMU.INTERRUPT_JOYPAD, INTERRUPT_ADDRESS_JOY_PAD
+	);
 
 	private int timerCounter = 1024; // Default. 4096 hz
 	private static final int TIMER_ENABLED_BIT = 2;
 
 	private boolean interruptionsEnabled = false;
+	private boolean pendingInterruptEnable = false;
 	private static final int PREFIX_CB = 0xcb;
 
 	private final HashMap<Integer, Operation> operations = new HashMap<>();
 	private final HashMap<Integer, Operation> operationsCB = new HashMap<>();
-
-	static {
-		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_V_BLANK, INTERRUPT_ADDRESS_V_BLANK);
-		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_LCD, INTERRUPT_ADDRESS_LCD);
-		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_TIMER, INTERRUPT_ADDRESS_TIMER);
-		INTERRUPT_ADDRESSES.put(INTERRUPT_BIT_JOYPAD, INTERRUPT_ADDRESS_JOY_PAD);
-	}
 
 	@Setter
 	private MMU mmu;
@@ -210,6 +207,11 @@ public class Z80Cpu {
 	}
 
 	public void execute() {
+		if (pendingInterruptEnable) {
+			interruptionsEnabled = true;
+			pendingInterruptEnable = false;
+		}
+
 		Operation operation;
 		int operationCode = mmu.getByte(PC.getValue());
 
@@ -302,6 +304,10 @@ public class Z80Cpu {
 		this.interruptionsEnabled = interruptionsEnabled;
 	}
 
+	void setPendingInterruptEnable(boolean pendingInterruptEnable) {
+		this.pendingInterruptEnable = pendingInterruptEnable;
+	}
+
 	public void updateTimers(int cycles) {
 		updateDividerRegister(cycles);
 		updateTimerRegister(cycles);
@@ -321,7 +327,7 @@ public class Z80Cpu {
 			if (timerCounter < 0) {
 				if (timerIsAboutToOverflow()) {
 					mmu.setByte(MMU.TIMER_ADDRESS, mmu.getByte(MMU.TIMER_MODULATOR));
-					requestInterrupt(INTERRUPT_BIT_TIMER);
+					mmu.requestInterrupt(MMU.INTERRUPT_TIMER);
 				} else {
 					mmu.setByte(MMU.TIMER_ADDRESS, mmu.getByte(MMU.TIMER_ADDRESS) + 1);
 				}
@@ -331,12 +337,6 @@ public class Z80Cpu {
 
 	private boolean timerIsAboutToOverflow() {
 		return mmu.getByte(MMU.TIMER_ADDRESS) == 255;
-	}
-
-	public void requestInterrupt(int bit) {
-		log.debug("Requested interrupt 0x{}", Integer.toHexString(bit));
-		int value = mmu.getByte(MMU.INTERRUPT_CONTROLLER_ADDRESS);
-		mmu.setByte(MMU.INTERRUPT_CONTROLLER_ADDRESS, BitUtils.setBit(value, bit));
 	}
 
 	private boolean isClockEnabled() {
@@ -371,6 +371,7 @@ public class Z80Cpu {
 				if (canServeInterrupt(requests, enabledInterrupts, i)) {
 					log.debug("Serving interrupt bit={}", i);
 					serveInterrupt(i);
+					return;
 				}
 			}
 		}

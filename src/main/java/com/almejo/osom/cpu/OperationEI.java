@@ -10,6 +10,6 @@ class OperationEI extends Operation {
 
 	@Override
 	void execute() {
-		cpu.setInterruptionsEnabled(true);
+		cpu.setPendingInterruptEnable(true);
 	}
 }

@@ -192,3 +192,27 @@ This is an append-only learning log documenting decisions, discoveries, and less
 **Changes:**
 - `docs/opcode-reference.md` — New: complete opcode reference with 512 entries and implementation status
 - `docs/build-journal.md` — This entry
+
+---
+
+### 2026-03-10 — Interrupt Signaling Refactor (Story 3.1)
+
+**What:** Moved interrupt signaling from Z80Cpu to MMU, fixed critical V-Blank bug, added serial interrupt support, implemented EI one-instruction delay, and fixed checkInterrupts to serve only one interrupt per call.
+
+**Hardware concept:** The Game Boy has 5 interrupt sources: V-Blank (bit 0, handler 0x40), LCD STAT (bit 1, 0x48), Timer (bit 2, 0x50), Serial (bit 3, 0x58), and Joypad (bit 4, 0x60). Interrupt requests are signaled by setting bits in the IF register (0xFF0F). The CPU serves interrupts in priority order (V-Blank highest) when both IF and IE (0xFFFF) bits are set and the IME flag is true. The EI instruction enables interrupts after a one-instruction delay — this prevents an interrupt from firing between EI and the instruction that follows it (commonly `EI; RET` or `EI; HALT`).
+
+**What we learned:**
+1. **Critical V-Blank bug:** GPU was passing the handler ADDRESS (0x40 = 64 decimal) as a bit INDEX to `BitUtils.setBit()`, resulting in `setBit(value, 64)` — a completely wrong bit position. V-Blank interrupts never worked correctly. The fix routes through `MMU.requestInterrupt(MMU.INTERRUPT_VBLANK)` which correctly passes bit index 0.
+2. **checkInterrupts served multiple interrupts per call.** The original loop iterated through all 5 bits without stopping after serving one. Since `serveInterrupt()` disables IME, subsequent loop iterations would still call `canServeInterrupt()` (which only checks IF/IE bits, not IME). This caused the CPU to serve multiple interrupts in a single `checkInterrupts()` call, corrupting the stack. Fixed by adding `return` after the first served interrupt.
+3. **Missing serial interrupt handler.** The `INTERRUPT_ADDRESSES` map had no entry for bit 3 (serial). If a serial interrupt was requested, `INTERRUPT_ADDRESSES.get(3)` would return `null`, causing a NullPointerException. Added `INTERRUPT_ADDRESS_SERIAL = 0x58`.
+4. **Decoupling GPU from CPU.** After routing interrupt signaling through MMU, the GPU no longer references Z80Cpu at all. Removed the `cpu` field and `setCpu()` from GPU, eliminating a coupling vector. GPU now only depends on MMU and FrameBuffer.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/memory/MMU.java` — Added `requestInterrupt(int bit)` method and 5 named interrupt constants (`INTERRUPT_VBLANK` through `INTERRUPT_JOYPAD`); added `@Slf4j`
+- `src/main/java/com/almejo/osom/cpu/Z80Cpu.java` — Removed `requestInterrupt()` method and 4 interrupt bit constants; added `INTERRUPT_ADDRESS_SERIAL = 0x58`; updated `INTERRUPT_ADDRESSES` map to use MMU constants; added `pendingInterruptEnable` field and setter; EI delay check at start of `execute()`; timer overflow now calls `mmu.requestInterrupt(MMU.INTERRUPT_TIMER)`; `checkInterrupts()` returns after serving first interrupt
+- `src/main/java/com/almejo/osom/gpu/GPU.java` — Removed `cpu` field and `Z80Cpu` import; V-Blank now calls `mmu.requestInterrupt(MMU.INTERRUPT_VBLANK)`
+- `src/main/java/com/almejo/osom/cpu/OperationEI.java` — Changed to `cpu.setPendingInterruptEnable(true)` for delayed enable
+- `src/main/java/com/almejo/osom/cpu/BitUtils.java` — Made `setBit()` public (needed by MMU cross-package)
+- `src/main/java/com/almejo/osom/Emulator.java` — Removed `gpu.setCpu(cpu)` call
+- `src/test/groovy/com/almejo/osom/memory/InterruptSignalingSpec.groovy` — New: 8 tests for `MMU.requestInterrupt()` and interrupt constants
+- `src/test/groovy/com/almejo/osom/cpu/InterruptHandlingSpec.groovy` — New: 9 tests for checkInterrupts priority, serveInterrupt sequence, EI delay, DI immediate, RETI immediate, IME guard, handler addresses

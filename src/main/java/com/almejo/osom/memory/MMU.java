@@ -2,15 +2,23 @@ package com.almejo.osom.memory;
 
 import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.cpu.Z80Cpu;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+@Slf4j
 public class MMU {
 	private static final int DIVIDER_REGISTER_ADDRESS = 0xFF04;
 	public static final int INTERRUPT_CONTROLLER_ADDRESS = 0xFF0F;
 	public static final int INTERRUPT_ENABLED_ADDRESS = 0xFFFF;
+
+	public static final int INTERRUPT_VBLANK = 0;
+	public static final int INTERRUPT_LCD_STAT = 1;
+	public static final int INTERRUPT_TIMER = 2;
+	public static final int INTERRUPT_SERIAL = 3;
+	public static final int INTERRUPT_JOYPAD = 4;
 	public static final int DMA_ADDRESS = 0xFF46;
 	private static final int IO_REGISTER = 0xFF00;
 
@@ -137,8 +145,7 @@ public class MMU {
 	}
 
 	private int getIOState() {
-		int state = 0xDF;
-		return state;
+        return 0xDF;
 	}
 
 	public int getWord(int address) {
@@ -169,6 +176,12 @@ public class MMU {
 
 	public void setScanline(int lineNumber) {
 		ram[LCD_LINE_COUNTER] = lineNumber;
+	}
+
+	public void requestInterrupt(int bit) {
+		log.debug("Requested interrupt bit={}", bit);
+		int value = getByte(INTERRUPT_CONTROLLER_ADDRESS);
+		setByte(INTERRUPT_CONTROLLER_ADDRESS, BitUtils.setBit(value, bit));
 	}
 
 }

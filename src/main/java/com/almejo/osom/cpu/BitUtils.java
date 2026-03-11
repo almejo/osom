@@ -1,11 +1,11 @@
 package com.almejo.osom.cpu;
 
 public class BitUtils {
-	static int setBit(int value, int n) {
+	public static int setBit(int value, int n) {
 		return value | 1 << n;
 	}
 
-	static int resetBit(int value, int n) {
+	public static int resetBit(int value, int n) {
 		return value & ~(1 << n);
 	}
 

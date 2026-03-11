@@ -1,7 +1,6 @@
 package com.almejo.osom.gpu;
 
 import com.almejo.osom.cpu.BitUtils;
-import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.memory.MMU;
 import lombok.Setter;
 
@@ -10,8 +9,6 @@ public class GPU {
 	private int clock = 0;
 	@Setter
 	private FrameBuffer frameBuffer;
-	@Setter
-    private Z80Cpu cpu;
 	private MMU mmu;
 
 	public GPU() {
@@ -34,7 +31,7 @@ public class GPU {
 			if (line < 145) {
 				drawLine();
 				if (line == 144) {
-					cpu.requestInterrupt(Z80Cpu.INTERRUPT_ADDRESS_V_BLANK);
+					mmu.requestInterrupt(MMU.INTERRUPT_VBLANK);
 				}
 				line++;
 				mmu.setScanline(line);
