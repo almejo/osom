@@ -216,3 +216,23 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/main/java/com/almejo/osom/Emulator.java` — Removed `gpu.setCpu(cpu)` call
 - `src/test/groovy/com/almejo/osom/memory/InterruptSignalingSpec.groovy` — New: 8 tests for `MMU.requestInterrupt()` and interrupt constants
 - `src/test/groovy/com/almejo/osom/cpu/InterruptHandlingSpec.groovy` — New: 9 tests for checkInterrupts priority, serveInterrupt sequence, EI delay, DI immediate, RETI immediate, IME guard, handler addresses
+
+---
+
+### 2026-03-11 — Fix Opcode Collision & Initial Missing Opcodes (Story 3.2)
+
+**What:** Fixed the 0x79/0x7A opcode collision in OperationLD_A_D, registered the corrected opcode, and verified Tetris runs 1800 frames headlessly without hitting unimplemented opcodes.
+
+**Hardware concept:** The Game Boy CPU's LD A,r family (opcodes 0x78-0x7D) loads an 8-bit register value into the accumulator (A). Each register maps to a specific opcode: B=0x78, C=0x79, D=0x7A, E=0x7B, H=0x7C, L=0x7D. The register pair (BC/DE/HL) and lo flag (high/low byte selection) must match the target register.
+
+**What we learned:**
+1. **Copy-paste bugs are multi-dimensional.** `OperationLD_A_D.java` was a copy of `OperationLD_A_C.java` with only the class name changed. Three parameters were wrong simultaneously: register pair (BC→DE), lo flag (true→false), and opcode (0x79→0x7A). The collision detection in `addOpcode()` would have caught it at startup — but the file was never registered in the Z80Cpu constructor, so the bug was silent.
+2. **Tetris 1800-frame gate passed on first run.** After fixing the collision and registering 0x7A, Tetris completed 1800 frames (~30 seconds game time) without hitting any unimplemented opcode exceptions. This means the existing 91 standard + 5 CB opcodes are sufficient for the Tetris title screen, demo loop, and credits. No additional opcodes needed for this story.
+3. **Headless emulator validation.** The `HeadlessTetrisRunner` Groovy script uses `Emulator.initialize()` + `runFrame()` directly with a `FrameBuffer`, bypassing all Swing/AWT code. This pattern enables CI-friendly ROM testing without a display server.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/cpu/OperationLD_A_D.java` — Fixed constructor: `cpu.BC`→`cpu.DE`, `true`→`false`, `0x79`→`0x7A`; added flag comment
+- `src/main/java/com/almejo/osom/cpu/Z80Cpu.java` — Registered `OperationLD_A_D` between LD_A_C and LD_A_E
+- `src/test/groovy/com/almejo/osom/cpu/OperationLD_A_r_Spec.groovy` — New: 4 tests for LD A,C (0x79) and LD A,D (0x7A) covering result, flags, and PC advancement
+- `src/test/groovy/com/almejo/osom/HeadlessTetrisRunner.groovy` — New: headless ROM runner for opcode discovery
+- `docs/opcode-reference.md` — Updated 0x7A status to "Yes", coverage to 91/256 standard (35.5%), 96/512 total (18.8%)

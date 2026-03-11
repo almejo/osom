@@ -162,6 +162,7 @@ public class Z80Cpu {
 		addOpcode(new OperationRET_NZ(this, this.mmu));
 		addOpcode(new OperationLD_A_B(this, this.mmu));
 		addOpcode(new OperationLD_A_C(this, this.mmu));
+		addOpcode(new OperationLD_A_D(this, this.mmu));
 		addOpcode(new OperationLD_A_E(this, this.mmu));
 		addOpcode(new OperationLD_A_H(this, this.mmu));
 		addOpcode(new OperationLD_A_L(this, this.mmu));

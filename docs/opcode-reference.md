@@ -7,9 +7,9 @@
 
 | Category | Implemented | Total | Coverage |
 |----------|-------------|-------|----------|
-| Standard (0x00-0xFF) | 90 | 256 | 35.2% |
+| Standard (0x00-0xFF) | 91 | 256 | 35.5% |
 | CB-prefixed (0xCB 0x00-0xCB 0xFF) | 5 | 256 | 2.0% |
-| **Total** | **95** | **512** | **18.6%** |
+| **Total** | **96** | **512** | **18.8%** |
 
 Note: 0xCB is the CB-prefix dispatch byte, not a standalone instruction.
 It is registered in the emulator as a router but not counted in coverage statistics.
@@ -152,7 +152,7 @@ It is registered in the emulator as a router but not counted in coverage statist
 | 0x77 | LD (HL), A           |   1 |      8 | - | - | - | - | Yes |
 | 0x78 | LD A, B              |   1 |      4 | - | - | - | - | Yes |
 | 0x79 | LD A, C              |   1 |      4 | - | - | - | - | Yes |
-| 0x7A | LD A, D              |   1 |      4 | - | - | - | - | No  |
+| 0x7A | LD A, D              |   1 |      4 | - | - | - | - | Yes |
 | 0x7B | LD A, E              |   1 |      4 | - | - | - | - | Yes |
 | 0x7C | LD A, H              |   1 |      4 | - | - | - | - | Yes |
 | 0x7D | LD A, L              |   1 |      4 | - | - | - | - | Yes |
