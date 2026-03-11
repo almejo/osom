@@ -174,3 +174,21 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `docs/regression-analysis.md` — New: comprehensive 7-section analysis document
 - `~/git/osom-old/` — Recreated from `git archive 3748f3e`, upgraded build.gradle for Java 17/Gradle 7.6, P1 Bugs 1/3/4 applied
 - `docs/build-journal.md` — This entry
+
+---
+
+### 2026-03-10 — Pan Docs Opcode Reference Table (Story 3-P3)
+
+**What:** Created complete opcode reference table from Pan Docs/gb-opcodes JSON data with implementation status tracking.
+
+**Hardware concept:** The LR35902 CPU has 256 standard opcodes (0x00-0xFF) and 256 CB-prefixed opcodes (0xCB 0x00-0xCB 0xFF). The CB prefix byte (0xCB) extends the instruction set, primarily for bit manipulation, rotation, and shift operations. Each opcode has a fixed byte length (1-3), fixed or conditional cycle count, and defined flag effects on Z (Zero), N (Subtract), H (Half-Carry), and C (Carry).
+
+**What we learned:**
+1. **Coverage is 95/512 (18.6%).** 90 standard opcodes + 5 CB-prefixed opcodes are currently registered. The 0xCB byte itself acts as a prefix router in the emulator, not a standalone instruction.
+2. **The gb-opcodes JSON at gbdev.io/gb-opcodes is authoritative and machine-readable.** It separates mnemonic from operands, with `immediate: false` indicating memory-indirect operands (e.g., `(HL)` rather than `HL`). Conditional instructions have a two-element `cycles` array (taken/not-taken).
+3. **Existing parameterized base classes cover many missing opcodes.** Classes like `OperationLD_r_n`, `OperationINC_r`, `OperationDEC_r` accept a register parameter — new opcodes can often be added by registering a new instance rather than writing a new class. This will accelerate Story 3.5 (Iterative Opcode Implementation).
+4. **Pan Docs and gb-opcodes are CC0 (public domain).** Attribution is included as professional courtesy, not legal requirement.
+
+**Changes:**
+- `docs/opcode-reference.md` — New: complete opcode reference with 512 entries and implementation status
+- `docs/build-journal.md` — This entry
