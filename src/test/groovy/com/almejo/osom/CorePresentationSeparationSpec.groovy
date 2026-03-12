@@ -6,7 +6,7 @@ import spock.lang.Specification
 class CorePresentationSeparationSpec extends Specification {
 
 	private static final String SOURCE_ROOT = "src/main/java/com/almejo/osom"
-	private static final List<String> CORE_PACKAGES = ["cpu", "memory", "gpu"]
+	private static final List<String> CORE_PACKAGES = ["cpu", "memory", "gpu", "input"]
 	private static final List<String> PROHIBITED_IMPORT_PATTERNS = ["javax.swing", "java.awt"]
 
 	def "core packages have no Swing/AWT imports"() {

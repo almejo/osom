@@ -3,6 +3,7 @@ package com.almejo.osom;
 import com.almejo.osom.cpu.Z80Cpu;
 import com.almejo.osom.gpu.FrameBuffer;
 import com.almejo.osom.gpu.GPU;
+import com.almejo.osom.input.Joypad;
 import com.almejo.osom.memory.Cartridge;
 import com.almejo.osom.memory.MMU;
 import lombok.Getter;
@@ -24,7 +25,7 @@ public class Emulator {
 	@Getter
 	private int totalCycles;
 
-	public void initialize(boolean bootBios, String file, FrameBuffer frameBuffer) throws IOException {
+	public void initialize(boolean bootBios, String file, FrameBuffer frameBuffer, Joypad joypad) throws IOException {
 		if (bootBios) {
 			Path biosPath = Paths.get("bios/bios.bin");
 			if (!Files.exists(biosPath)) {
@@ -37,6 +38,7 @@ public class Emulator {
 		gpu = new GPU();
 		byte[] bytes = Files.readAllBytes(path);
 		MMU mmu = new MMU(bootBios);
+		mmu.setJoypad(joypad);
 		gpu.setMmu(mmu);
 		gpu.setFrameBuffer(frameBuffer);
 

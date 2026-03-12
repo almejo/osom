@@ -61,4 +61,5 @@ All memory access routes through MMU. Key regions: ROM (0x0000-0x7FFF), VRAM (0x
 - Uses tabs for indentation
 - Lombok `@Getter`/`@Setter` for accessor methods — do not write manual getters/setters where Lombok is already used
 - ROM files go in the `roms/` directory (gitignored)
+- **All `if`/`else`/`for`/`while` blocks must use braces `{}`** — even for single-line bodies. No braceless control flow.
 - **All new code must have tests** — every new method, class, or behavior change requires corresponding Spock tests unless there is a clear, documented reason not to (e.g., pure wiring code, trivial delegation)

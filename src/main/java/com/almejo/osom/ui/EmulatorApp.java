@@ -2,6 +2,7 @@ package com.almejo.osom.ui;
 
 import com.almejo.osom.Emulator;
 import com.almejo.osom.gpu.FrameBuffer;
+import com.almejo.osom.input.Joypad;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.JFrame;
@@ -21,13 +22,15 @@ public class EmulatorApp {
 
 	public void run(boolean bootBios, String file) throws IOException {
 		FrameBuffer frameBuffer = new FrameBuffer();
+		Joypad joypad = new Joypad();
 		Emulator emulator = new Emulator();
-		emulator.initialize(bootBios, file, frameBuffer);
+		emulator.initialize(bootBios, file, frameBuffer, joypad);
 
 		LCDScreen lcdScreen = new LCDScreen(frameBuffer);
+		lcdScreen.setJoypad(joypad);
 
 		int frameWidth = FrameBuffer.WIDTH * LCDScreen.FACTOR + LCDScreen.FACTOR;
-		int frameHeight = FrameBuffer.HEIGHT * LCDScreen.FACTOR + LCDScreen.FACTOR;
+		int frameHeight = FrameBuffer.HEIGHT * LCDScreen.FACTOR + LCDScreen.FACTOR + LCDScreen.INDICATOR_STRIP_HEIGHT;
 
 		JFrame frame = new JFrame(getConfiguration(2).getDefaultConfiguration());
 		frame.setSize(frameWidth, frameHeight);
@@ -42,6 +45,7 @@ public class EmulatorApp {
 		});
 		frame.pack();
 		frame.setVisible(true);
+		lcdScreen.requestFocusInWindow();
 
 		int frameCounter = 0;
 		long secondCounter = 0;

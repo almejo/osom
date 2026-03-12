@@ -2,6 +2,8 @@ package com.almejo.osom.memory;
 
 import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.cpu.Z80Cpu;
+import com.almejo.osom.input.Joypad;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -40,6 +42,8 @@ public class MMU {
 	private final int[] bios;
 	private Cartridge cartridge;
 	private Z80Cpu cpu;
+	@Setter
+	private Joypad joypad;
 
 	public MMU(boolean useBios) throws IOException {
 		this.useBios = useBios;
@@ -78,7 +82,9 @@ public class MMU {
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			ram[address] = value;
 		} else if (address == IO_REGISTER) {
-			ram[IO_REGISTER] = value;
+			if (joypad != null) {
+				joypad.write(value);
+			}
 		} else if (address == TIMER_ADDRESS || address == TIMER_MODULATOR) {
 			ram[address] = value;
 		} else if (address == TIMER_CONTROLLER) {
@@ -132,7 +138,10 @@ public class MMU {
 		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
 			return 0;
 		} else if (address == IO_REGISTER) {
-			return getIOState();
+			if (joypad != null) {
+				return joypad.read();
+			}
+			return 0xFF;
 		} else if (address == LCD_STATUS) {
 			// Bit 7 always reads as 1 on real hardware
 			return ram[LCD_STATUS] | 0x80;
@@ -158,10 +167,6 @@ public class MMU {
 			return ram[address - 0x2000];
 		}
 		throw new UnreadableMemoryLocation(address);
-	}
-
-	private int getIOState() {
-		return 0xDF;
 	}
 
 	public int getWord(int address) {

@@ -1,6 +1,7 @@
 package com.almejo.osom
 
 import com.almejo.osom.gpu.FrameBuffer
+import com.almejo.osom.input.Joypad
 
 import java.util.zip.CRC32
 
@@ -15,8 +16,9 @@ class TestEmulator {
 
 	TestEmulator(String romPath, boolean bootBios) {
 		frameBuffer = new FrameBuffer()
+		Joypad joypad = new Joypad()
 		emulator = new Emulator()
-		emulator.initialize(bootBios, romPath, frameBuffer)
+		emulator.initialize(bootBios, romPath, frameBuffer, joypad)
 	}
 
 	void runFrames(int count) {

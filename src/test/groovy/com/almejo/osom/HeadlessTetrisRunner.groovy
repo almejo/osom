@@ -1,6 +1,7 @@
 package com.almejo.osom
 
 import com.almejo.osom.gpu.FrameBuffer
+import com.almejo.osom.input.Joypad
 import groovy.util.logging.Slf4j
 
 /**
@@ -27,8 +28,9 @@ class HeadlessTetrisRunner {
 		log.info("Target frames: {}", targetFrames)
 
 		FrameBuffer frameBuffer = new FrameBuffer()
+		Joypad joypad = new Joypad()
 		Emulator emulator = new Emulator()
-		emulator.initialize(false, romPath, frameBuffer)
+		emulator.initialize(false, romPath, frameBuffer, joypad)
 
 		int framesCompleted = 0
 		try {

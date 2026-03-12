@@ -279,3 +279,28 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/test/groovy/com/almejo/osom/gpu/GPUStateMachineSpec.groovy` — New: 32 tests covering mode transition timing, MMU I/O register roundtrips, STAT mode bits, LY=LYC coincidence flag and interrupt, LCD STAT interrupts on mode transitions, background rendering with scroll registers, tile Y calculation with non-zero SCY, V-Blank behavior (start at 144, interrupt fires once, LY 144-153, 10 lines, wrap to 0), full frame timing (70224 T-cycles), multi-mode single update() call, STAT write protection, LCD disable behavior
 
 **Milestone: Tetris credits rendering restored.** After this story, the emulator successfully renders the Tetris credits screen again — matching the output from the original working commit `4e9e680` ("Interrupts working and tetris credits are clear"). This was the primary goal of Epic 3's stabilization arc. The GPU FSM had been disabled in commit `3a040c6` and replaced with a simplified approach that worked by coincidence for basic V-Blank timing but was architecturally broken. The restored FSM is now correct per Pan Docs, has 32 regression tests, and fixes 6 bugs that the original never had (overshoot arithmetic, 0-based lines, V-Blank LY, scroll swap, tile Y, silent I/O drops). This proves the emulator's core rendering pipeline — CPU instruction execution, timer-driven game logic, GPU scanline rendering, and V-Blank interrupt synchronization — is functioning correctly end-to-end.
+
+---
+
+### 2026-03-11 — Joypad Subsystem & Keyboard Mapping (Story 4.1)
+
+**What:** Implemented the Game Boy joypad subsystem with keyboard mapping, integrating it into the MMU (register 0xFF00) and LCDScreen (keyboard input forwarding).
+
+**Hardware concept:** The Game Boy joypad uses a multiplexed register at 0xFF00. The register has two select bits (bit 4 for direction group, bit 5 for action group) that the game writes to choose which button group to read. Button states are returned in bits 0-3 using active-low convention (0 = pressed, 1 = not pressed). The 8 buttons are organized into two groups: Direction (Right=bit0, Left=bit1, Up=bit2, Down=bit3) and Action (A=bit0, B=bit1, Select=bit2, Start=bit3). Bits 7-6 always read as 1, and bits 5-4 echo the select state. Games typically poll this register rather than relying on the joypad interrupt.
+
+**What we learned:**
+1. **Structural tests scan comments too.** The `CorePresentationSeparationSpec` uses `content.contains("java.awt")` which matches string literals in comments, not just import statements. Initial Joypad.java had doc comments referencing `java.awt.event.KeyEvent.VK_*` constants, which triggered a false positive. The fix was to abbreviate the comments to just `VK_*` names. This is a known limitation of the string-scanning approach — a regex matching only `import.*java.awt` would be more precise.
+2. **AWT-free keyboard mapping via integer constants.** The Joypad class uses raw integer values for key codes (e.g., `38` for VK_UP) declared as `private static final int` named constants. This avoids any `java.awt` import while maintaining readability through descriptive constant names and VK_* comments. The AWT `KeyEvent` to `int` conversion boundary sits in `LCDScreen.keyPressed(KeyEvent)` → `joypad.keyPressed(int keyCode)`.
+3. **Null guard pattern for optional subsystems.** MMU returns `0xFF` when joypad is null (no group selected, no buttons pressed — the cleanest idle state). This prevents NullPointerException in 120+ existing tests that don't wire a joypad. The same pattern was used for GPU null-guarding in earlier stories.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/input/Joypad.java` — New: core joypad subsystem with 8 button constants, keyboard mapping (arrows=D-pad, Z=A, X=B, Enter=Start, Backspace=Select), multiplexed read/write register protocol, active-low button representation, `isButtonPressed()` for visual indicators
+- `src/main/java/com/almejo/osom/memory/MMU.java` — Added `Joypad` field with `@Setter`; delegated 0xFF00 read to `joypad.read()` and write to `joypad.write()`; removed dead `getIOState()` method; added null guard returning 0xFF
+- `src/main/java/com/almejo/osom/ui/LCDScreen.java` — Added `KeyListener` implementation forwarding key events to Joypad; added `Joypad` field with `@Setter`; added visual button press indicators (colored dots below framebuffer); expanded panel height by 20px for indicator strip
+- `src/main/java/com/almejo/osom/ui/EmulatorApp.java` — Creates `Joypad` instance; passes to `Emulator.initialize()` and `LCDScreen.setJoypad()`; calls `requestFocusInWindow()` after frame visible; expanded frame height for indicator strip
+- `src/main/java/com/almejo/osom/Emulator.java` — Added `Joypad` parameter to `initialize()`; calls `mmu.setJoypad(joypad)` after creating MMU
+- `src/test/groovy/com/almejo/osom/input/JoypadSpec.groovy` — New: 31 unit tests covering direction/action select, active-low representation, all 8 keyboard mappings, unmapped key, simultaneous opposing directions, rapid press/release, upper bits, `isButtonPressed()`
+- `src/test/groovy/com/almejo/osom/input/JoypadMMUIntegrationSpec.groovy` — New: 6 integration tests for MMU round-trip, null joypad guard
+- `src/test/groovy/com/almejo/osom/CorePresentationSeparationSpec.groovy` — Added `"input"` to CORE_PACKAGES list
+- `src/test/groovy/com/almejo/osom/TestEmulator.groovy` — Updated `initialize()` call to include Joypad parameter
+- `src/test/groovy/com/almejo/osom/HeadlessTetrisRunner.groovy` — Updated `initialize()` call to include Joypad parameter
