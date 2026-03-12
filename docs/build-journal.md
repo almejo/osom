@@ -304,3 +304,20 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/test/groovy/com/almejo/osom/CorePresentationSeparationSpec.groovy` — Added `"input"` to CORE_PACKAGES list
 - `src/test/groovy/com/almejo/osom/TestEmulator.groovy` — Updated `initialize()` call to include Joypad parameter
 - `src/test/groovy/com/almejo/osom/HeadlessTetrisRunner.groovy` — Updated `initialize()` call to include Joypad parameter
+
+---
+
+### 2026-03-11 — Unhandled I/O Register Storage (Story 4-P1)
+
+**What:** Added generic I/O register storage in MMU so writes to unhandled I/O registers (0xFF00-0xFF7F) are stored in `ram[]` and readable, and silently ignores writes to the prohibited OAM area (0xFEA0-0xFEFF).
+
+**Hardware concept:** The Game Boy I/O register range (0xFF00-0xFF7F) contains registers for all hardware subsystems — joypad, serial, timer, sound, LCD, and DMA. When a game writes to an I/O register, it expects to read the same value back. Some registers have special behavior (e.g., writing to DIV resets it to 0), but most simply store the written value. The prohibited OAM area (0xFEA0-0xFEFF) is a 96-byte gap between OAM (0xFE00-0xFE9F) and I/O registers (0xFF00) that returns 0 on reads and ignores writes — games sometimes write zeros there during OAM clearing routines.
+
+**What we learned:**
+1. **Silent write discard is the recurring MMU bug pattern.** This is the third story (after 3-P1 and 3.3) fixing the same root cause: `setByte()` falls through to the `log.warn("Unhandled write")` catch-all, silently discarding the value. The game writes palette data (0xFF47=0xFC), sound panning (0xFF25=0xFF), window position (0xFF4A/0xFF4B), and serial data (0xFF01/0xFF02) — all lost. When the game reads these back and gets 0, its state machine breaks.
+2. **Generic storage is sufficient to unblock gameplay.** Rather than implementing palette rendering, sound output, or serial communication, simply storing the written values in `ram[]` and returning them on reads is enough for the game to proceed. The game's logic just needs consistency between what it writes and what it reads back — it doesn't need the hardware to actually process those values (yet).
+3. **Handler ordering matters.** The generic I/O fallback (0xFF00-0xFF7F) must come AFTER all specific handlers (joypad, DIV, TIMA, TMA, TAC, IF, LCD registers, DMA) so those continue to execute their special behavior. It must come BEFORE the RAM catch-all (0x0000-0xDFFF) and the `else` warning.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/memory/MMU.java` — Added generic I/O write handler (0xFF00-0xFF7F fallback after specific handlers), prohibited OAM handler (0xFEA0-0xFEFF silently ignored), fixed `getByte()` to return `ram[address]` instead of 0 for I/O reads, added named constants for palette registers (BGP, OBP0, OBP1) and window registers (WY, WX)
+- `src/test/groovy/com/almejo/osom/memory/IORegisterStorageSpec.groovy` — New: 31 tests covering generic I/O round-trip, palette register round-trip, window register round-trip, sound register round-trip, serial register round-trip, prohibited OAM area behavior, non-interference with existing handlers (joypad, DIV, DMA, IF, LCDC, TIMA, TMA, TAC), defaults, cross-contamination, and bit masking

@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 
 @Slf4j
 public class MMU {
-	private static final int DIVIDER_REGISTER_ADDRESS = 0xFF04;
+	public static final int DIVIDER_REGISTER_ADDRESS = 0xFF04;
 	public static final int INTERRUPT_CONTROLLER_ADDRESS = 0xFF0F;
 	public static final int INTERRUPT_ENABLED_ADDRESS = 0xFFFF;
 
@@ -22,7 +22,7 @@ public class MMU {
 	public static final int INTERRUPT_SERIAL = 3;
 	public static final int INTERRUPT_JOYPAD = 4;
 	public static final int DMA_ADDRESS = 0xFF46;
-	private static final int IO_REGISTER = 0xFF00;
+	public static final int IO_REGISTER = 0xFF00;
 
 	public static final int TIMER_ADDRESS = 0xFF05;
 	public static final int TIMER_MODULATOR = 0xFF06;
@@ -34,6 +34,16 @@ public class MMU {
 	public static final int LCD_SCROLL_X = 0xFF43;
 	public static final int LCD_LINE_COUNTER = 0xFF44;
 	public static final int LCD_LY_COMPARE = 0xFF45;
+
+	public static final int SERIAL_DATA = 0xFF01;
+	public static final int SERIAL_CONTROL = 0xFF02;
+	public static final int SOUND_NR51 = 0xFF25;
+
+	public static final int PALETTE_BGP = 0xFF47;
+	public static final int PALETTE_OBP0 = 0xFF48;
+	public static final int PALETTE_OBP1 = 0xFF49;
+	public static final int WINDOW_Y = 0xFF4A;
+	public static final int WINDOW_X = 0xFF4B;
 
 	private boolean useBios;
 	private final int[] ram = new int[0xffff + 1];
@@ -67,6 +77,7 @@ public class MMU {
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
 			sprites[address - 0xFE00] = value;
 		} else if (address == DMA_ADDRESS) {
+			ram[DMA_ADDRESS] = value;
 			doDMATransfer(value);
 		} else if (address == LCD_LINE_COUNTER) {
 			ram[address] = 0;
@@ -91,6 +102,11 @@ public class MMU {
 			updateTimerFrequency(value);
 		} else if (address == DIVIDER_REGISTER_ADDRESS) {
 			ram[DIVIDER_REGISTER_ADDRESS] = 0;
+		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
+			// Prohibited OAM area — silently ignored per Game Boy hardware behavior
+		} else if (address > 0xFF00 && address <= 0xFF7F) {
+			// Generic I/O register storage fallback — stores value for readback
+			ram[address] = value;
 		} else if (address >= 0x0000 && address <= 0xDFFF) {
 			ram[address] = value;
 		} else if (address >= 0xE000 && address <= 0xFDFF) {
@@ -157,8 +173,8 @@ public class MMU {
 				|| address == TIMER_CONTROLLER) {
 			return ram[address];
 		} else if (address > 0xFF00 && address <= 0xFF7F) {
-			log.warn("Unhandled read: address=0x{} returning 0", String.format("%04X", address));
-			return 0;
+			// Generic I/O register read — returns stored value
+			return ram[address];
 		} else if (address >= 0xFF80 && address <= 0xFFFF) {
 			return ram[address];
 		} else if (address >= 0xC000 && address <= 0xDFFF) {
