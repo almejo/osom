@@ -2,7 +2,7 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 
-abstract class OperationAND_r extends Operation {
+class OperationAND_r extends Operation {
 
 	private final Register register;
 	private final boolean lo;
@@ -13,6 +13,7 @@ abstract class OperationAND_r extends Operation {
 		this.lo = lo;
 	}
 
+	// Flags: Z=* N=0 H=1 C=0
 	@Override
 	void execute() {
 		int value = lo ? register.getLo() : register.getHi();

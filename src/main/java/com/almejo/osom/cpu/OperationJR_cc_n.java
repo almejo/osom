@@ -10,6 +10,7 @@ abstract class OperationJR_cc_n extends OperationConditional {
 		super(cpu, mmu, m, t, t2, code, length);
 	}
 
+	// Flags: - (not affected)
 	@Override
 	void execute() {
 		this.actionTaken = false;

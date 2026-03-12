@@ -82,6 +82,12 @@ public class MMU {
 		} else if (address == LCD_LINE_COUNTER) {
 			ram[address] = 0;
 		} else if (address == LCD_CONTROLLER) {
+			if ((value & 0x80) == 0 && (ram[address] & 0x80) != 0) {
+				log.debug("LCD OFF: LCDC 0x{} -> 0x{} [PC=0x{}]",
+						String.format("%02X", ram[address]),
+						String.format("%02X", value),
+						String.format("%04X", cpu.getProgramCounter()));
+			}
 			ram[address] = value;
 		} else if (address == LCD_STATUS) {
 			// Only write bits 3-6 (interrupt enables); bits 0-2 are read-only (mode + coincidence flag)

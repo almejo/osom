@@ -126,14 +126,18 @@ public class LCDScreen extends JPanel implements KeyListener {
 	public void keyTyped(KeyEvent keyEvent) {
 	}
 
-	private Color getColor(int colorIndex) {
-		return switch (colorIndex) {
-			case 0 -> Color.black;
-			case 1 -> Color.green;
-			case 2 -> Color.red;
-			case 3 -> Color.blue;
-			default -> Color.white;
-		};
+	private static final Color[] DMG_SHADES = {
+		new Color(155, 188, 15),  // Shade 0 — lightest
+		new Color(139, 172, 15),  // Shade 1 — light
+		new Color(48, 98, 48),    // Shade 2 — dark
+		new Color(15, 56, 15)     // Shade 3 — darkest
+	};
+
+	private Color getColor(int shade) {
+		if (shade >= 0 && shade <= 3) {
+			return DMG_SHADES[shade];
+		}
+		return Color.white;
 	}
 
 }

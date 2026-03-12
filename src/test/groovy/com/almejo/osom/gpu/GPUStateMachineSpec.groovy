@@ -312,6 +312,7 @@ class GPUStateMachineSpec extends Specification {
 	def "background rendering uses scroll registers for pixel offset"() {
 		given: "background enabled (LCDC bit 0), tile data at 0x8000 (LCDC bit 4)"
 		mmu.setByte(MMU.LCD_CONTROLLER, 0x91) // LCD enabled + BG enabled + tile data 0x8000
+		mmu.setByte(MMU.PALETTE_BGP, 0xE4) // identity palette: color 0→shade 0, 1→1, 2→2, 3→3
 		// Set scroll Y = 0, scroll X = 0
 		mmu.setByte(MMU.LCD_SCROLL_Y, 0)
 		mmu.setByte(MMU.LCD_SCROLL_X, 0)
@@ -336,6 +337,7 @@ class GPUStateMachineSpec extends Specification {
 	def "tile Y calculation uses posY (scrollY + line) not just line"() {
 		given: "background enabled, tile data at 0x8000"
 		mmu.setByte(MMU.LCD_CONTROLLER, 0x91)
+		mmu.setByte(MMU.PALETTE_BGP, 0xE4) // identity palette
 		mmu.setByte(MMU.LCD_SCROLL_Y, 3) // scroll Y = 3
 		mmu.setByte(MMU.LCD_SCROLL_X, 0)
 

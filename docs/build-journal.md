@@ -321,3 +321,54 @@ This is an append-only learning log documenting decisions, discoveries, and less
 **Changes:**
 - `src/main/java/com/almejo/osom/memory/MMU.java` — Added generic I/O write handler (0xFF00-0xFF7F fallback after specific handlers), prohibited OAM handler (0xFEA0-0xFEFF silently ignored), fixed `getByte()` to return `ram[address]` instead of 0 for I/O reads, added named constants for palette registers (BGP, OBP0, OBP1) and window registers (WY, WX)
 - `src/test/groovy/com/almejo/osom/memory/IORegisterStorageSpec.groovy` — New: 31 tests covering generic I/O round-trip, palette register round-trip, window register round-trip, sound register round-trip, serial register round-trip, prohibited OAM area behavior, non-interference with existing handlers (joypad, DIV, DMA, IF, LCDC, TIMA, TMA, TAC), defaults, cross-contamination, and bit masking
+
+---
+
+### 2026-03-11 — CPU Execution Trace for Emulator Comparison (Story 4-P2)
+
+**What:** Added `--trace` CLI flag that outputs CPU state in Gameboy Doctor format before each instruction, enabling diff-based comparison against known-correct emulators.
+
+**Hardware concept:** CPU execution tracing captures the full register state (A, F, B, C, D, E, H, L, SP, PC) and four bytes of memory at the program counter (PCMEM) before each instruction executes. The Gameboy Doctor format is a de facto standard used by multiple Game Boy emulator testing tools. By recording state *before* execution, you can diff two emulators' traces to find the exact instruction where behavior diverges — the first mismatched line reveals the buggy opcode.
+
+**What we learned:**
+1. **Trace output must use stdout, not SLF4J.** Trace lines are meant to be redirected to a file via shell (`> trace.log`) for diffing. Using SLF4J would add logback formatting (timestamps, levels) that breaks the clean line-per-instruction format required by comparison tools.
+2. **State BEFORE execution is critical.** Both Gameboy Doctor and Gameboy-logs reference traces record CPU state before the instruction at PC executes, not after. This means the trace call must happen at the very top of `execute()`, before the opcode is fetched.
+3. **Zero overhead when disabled.** The entire cost when `--trace` is not specified is a single boolean check (`if (traceEnabled)`) at the start of `execute()`. No String.format, no memory reads, no I/O.
+4. **PCMEM edge cases near 0xFFFF.** When PC is at 0xFFFD or later, some PCMEM addresses exceed 0xFFFF. These return 0x00 rather than throwing an exception, matching the behavior that comparison tools expect.
+5. **Two comparison strategies are available now.** Boot ROM comparison (against Gameboy-logs pre-generated reference traces) validates the ~50 instructions used during boot. Tetris diff comparison validates the ~96 instructions Tetris uses. Both use the same trace format. Full Blargg test comparison via Gameboy Doctor is deferred to Epic 9 when all 512 opcodes are implemented.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/cpu/CpuTracer.java` — New: formats CPU state into Gameboy Doctor format (`formatLine` for testable formatting, `traceLine` for stdout output with PCMEM edge case handling)
+- `src/main/java/com/almejo/osom/cpu/Z80Cpu.java` — Added `traceEnabled` field, `CpuTracer` instance, `setTraceEnabled()` method; calls `tracer.traceLine()` at top of `execute()` when tracing is enabled
+- `src/main/java/com/almejo/osom/Main.java` — Added `--trace` / `-t` CLI option; passes trace flag through to `EmulatorApp`
+- `src/main/java/com/almejo/osom/ui/EmulatorApp.java` — Added `trace` parameter to `run()`; passes to `Emulator.initialize()`
+- `src/main/java/com/almejo/osom/Emulator.java` — Added `trace` parameter to `initialize()`; calls `cpu.setTraceEnabled(trace)` after CPU creation
+- `src/test/groovy/com/almejo/osom/cpu/CpuTraceSpec.groovy` — New: 10 Spock tests covering exact format matching, zero-padding, uppercase hex, field order, PCMEM from MMU, trace disabled default, PC near end of memory (0xFFFD, 0xFFFE, 0xFFFF), and all individual register values
+- `src/test/groovy/com/almejo/osom/TestEmulator.groovy` — Updated `initialize()` call to include trace parameter (false)
+- `src/test/groovy/com/almejo/osom/HeadlessTetrisRunner.groovy` — Updated `initialize()` call to include trace parameter (false)
+- `docs/trace-comparison.md` — New: documents trace format, usage, boot ROM comparison workflow (Gameboy-logs), Tetris diff workflow, and deferred Gameboy Doctor/Blargg strategy
+
+---
+
+### 2026-03-12 — Massive Opcode Implementation & Tetris Gameplay (Story 4-P3)
+
+**What:** Implemented ~400 new opcodes in a single session to unblock Tetris gameplay. Fixed RET NZ/RET Z conditional return bug. Analyzed the Tetris sound engine ROM region ($6400-$7FF0) to identify all missing opcodes. Created parameterized operation classes for bulk registration. Added HALT instruction, ADC/SBC carry operations, DAA decimal adjust, and the complete CB instruction set. Applied BGP palette register and replaced debug colors with classic DMG green shades. Tetris now boots to the game type/music selection menu.
+
+**Hardware concept:** The Game Boy CPU has 245 valid standard opcodes and 256 CB-prefixed opcodes. The CB prefix byte (0xCB) acts as a router — when encountered, the CPU reads the next byte and dispatches to the CB opcode table. The HALT instruction (0x76) stops the CPU until any enabled interrupt fires, saving power. ADC (add with carry) and SBC (subtract with carry) include the carry flag from the previous operation, enabling multi-byte arithmetic. DAA (Decimal Adjust Accumulator) corrects the result after BCD addition/subtraction by adding/subtracting 0x06 and/or 0x60 based on half-carry, carry, and subtract flags. The BGP register (0xFF47) maps 2-bit color indices from tile data through a palette — each pair of bits in BGP specifies which shade (0-3) to display for that color index.
+
+**What we learned:**
+1. **RET NZ/RET Z must only pop when condition is met.** The previous implementation always popped the stack and only conditionally jumped, corrupting the stack when the condition was false. RET cc should: check the flag, and if the condition is NOT met, consume cycles but leave PC and SP unchanged. Tetris was stuck in an infinite loop at the copyright screen because a false RET Z was popping the return address from the stack, causing the next RET to jump to wrong code.
+2. **Parameterized operation classes enable bulk registration.** Creating generic classes like `OperationLD_r_r(dest, destLo, src, srcLo)`, `OperationADC_r(code, register, lo)`, `OperationCB_aHL(code, opType, bit)` allowed registering entire opcode families with a single class. The `OperationCB_aHL` "mega class" handles all 64 CB (HL) variants (RLC/RRC/RL/RR/SLA/SRA/SWAP/SRL/BIT/RES/SET × 8 bits) via an operation type constant and switch.
+3. **ROM scanning finds all missing opcodes at once.** Rather than run-crash-implement-repeat, extracting opcodes from the sound engine ROM region and cross-referencing against registered opcodes identified all ~400 missing instructions in one pass. This is far more efficient than iterative discovery.
+4. **Abstract classes can't be directly instantiated.** Three existing classes (OperationAND_r, OperationRES_n_r, OperationRST_n) were declared `abstract` but needed to be used as parameterized concrete classes. Removing `abstract` was the fix — no behavioral change.
+5. **Palette register lookup is a simple 2-bit extraction.** `shade = (bgp >> (colorIndex * 2)) & 0x03` maps each raw color index through the palette. The classic DMG green shades are: lightest (155,188,15), light (139,172,15), dark (48,98,48), darkest (15,56,15).
+
+**Changes:**
+- `src/main/java/com/almejo/osom/cpu/Z80Cpu.java` — Registered ~400 new opcodes (500 total: 244 standard + 256 CB); added `halted` field and HALT handling in `execute()`; modified `checkInterrupts()` to un-halt CPU when any enabled interrupt is pending
+- `src/main/java/com/almejo/osom/cpu/ALU.java` — Added `adcRegisterHI()` and `sbcRegisterHI()` methods for carry-aware arithmetic
+- `src/main/java/com/almejo/osom/cpu/OperationRET_NZ.java` / `OperationRET_Z.java` — Fixed conditional return: only pop stack and jump when flag condition is met; consume different cycle counts for taken (5M/20T) vs not-taken (2M/8T)
+- ~50 new Operation*.java files — Individual operations (DAA, SCF, CCF, HALT, RLCA, RRCA, RRA, STOP, etc.) and parameterized families (OperationLD_r_r, OperationLD_aHL_r, OperationADC_r, OperationSBC_r, OperationXOR_r, OperationCP_r, OperationRLC_r, OperationRRC_r, OperationRR_r, OperationSRA_r, OperationSRL_r, OperationSET_b_r, OperationCB_aHL)
+- `src/main/java/com/almejo/osom/gpu/GPU.java` — Added BGP palette register lookup in `renderBackground()`: raw color index mapped through BGP before writing to frame buffer
+- `src/main/java/com/almejo/osom/ui/LCDScreen.java` — Replaced debug colors (black/green/red/blue) with DMG green shades array; `getColor()` now indexes into `DMG_SHADES[]`
+- `src/test/groovy/com/almejo/osom/gpu/GPUStateMachineSpec.groovy` — Added `PALETTE_BGP = 0xE4` (identity palette) to 2 rendering tests broken by palette change
+- Removed session-specific diagnostic logs: PC watchpoints (0x0000, 0x021B, 0x02B4), GAME_STATUS tracker, BUTTON_DOWN tracker, `gameStatusName()` method; downgraded non-VBlank interrupt and stack high-water logs to DEBUG level

@@ -8,12 +8,13 @@ class OperationRET_Z extends OperationConditional {
 		super(cpu, mmu, 1, 20, 8, 0xc8, 1);
 	}
 
+	// Flags: - (not affected)
 	@Override
 	void execute() {
-		int address = cpu.popWordOnStack();
-		boolean jump = cpu.isFlagSetted(Z80Cpu.FLAG_ZERO);
-		if (jump) {
-			cpu.PC.setValue(address);
+		this.actionTaken = false;
+		if (cpu.isFlagSetted(Z80Cpu.FLAG_ZERO)) {
+			cpu.PC.setValue(cpu.popWordOnStack());
+			this.actionTaken = true;
 		}
 	}
 }

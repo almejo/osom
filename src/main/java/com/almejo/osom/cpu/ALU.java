@@ -68,9 +68,9 @@ public class ALU {
 	}
 
 	void updateIncFlags(int value, int n) {
-		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value + n) & 0xff) == 0);
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, ((value + n) & 0xFF) == 0);
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
-		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0f) < (n & 0x0f));
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (value & 0x0F) + (n & 0x0F) > 0x0F);
 	}
 
 	public void addRegisterHI(Register register, int n) {
@@ -121,5 +121,27 @@ public class ALU {
 		int before = register.getHi();
 		register.setHi(register.getHi() - value);
 		updateSubFlags(before, value);
+	}
+
+	public void adcRegisterHI(Register register, int n) {
+		int carry = cpu.isFlagSetted(Z80Cpu.FLAG_CARRY) ? 1 : 0;
+		int oldValue = register.getHi();
+		int result = oldValue + n + carry;
+		register.setHi(result);
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, (result & 0xFF) == 0);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (oldValue & 0xF) + (n & 0xF) + carry > 0xF);
+		cpu.setFlag(Z80Cpu.FLAG_CARRY, result > 0xFF);
+	}
+
+	public void sbcRegisterHI(Register register, int n) {
+		int carry = cpu.isFlagSetted(Z80Cpu.FLAG_CARRY) ? 1 : 0;
+		int oldValue = register.getHi();
+		int result = oldValue - n - carry;
+		register.setHi(result);
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, (result & 0xFF) == 0);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, true);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, (oldValue & 0xF) < (n & 0xF) + carry);
+		cpu.setFlag(Z80Cpu.FLAG_CARRY, oldValue < n + carry);
 	}
 }

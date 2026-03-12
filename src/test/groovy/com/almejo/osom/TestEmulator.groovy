@@ -18,7 +18,7 @@ class TestEmulator {
 		frameBuffer = new FrameBuffer()
 		Joypad joypad = new Joypad()
 		emulator = new Emulator()
-		emulator.initialize(bootBios, romPath, frameBuffer, joypad)
+		emulator.initialize(bootBios, romPath, frameBuffer, joypad, false)
 	}
 
 	void runFrames(int count) {

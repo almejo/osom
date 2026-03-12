@@ -20,7 +20,7 @@ import java.io.IOException;
 @Slf4j
 public class Main {
 
-	private static final String USAGE = "java -jar osom.jar --rom <path> [--no-bios] [--log-level <level>]";
+	private static final String USAGE = "java -jar osom.jar --rom <path> [--no-bios] [--log-level <level>] [--trace]";
 
 	public static void main(String[] args) throws IOException {
 
@@ -64,9 +64,10 @@ public class Main {
 		}
 
 		boolean bios = !commandLine.hasOption("no-bios");
+		boolean trace = commandLine.hasOption("trace");
 
 		try {
-			new EmulatorApp().run(bios, filename);
+			new EmulatorApp().run(bios, filename, trace);
 		} catch (IllegalStateException exception) {
 			System.exit(1);
 		}
@@ -99,6 +100,10 @@ public class Main {
 						.hasArg()
 						.longOpt("log-level")
 						.desc("Set logging level (TRACE, DEBUG, INFO, WARN, ERROR)")
+						.build())
+				.addOption(Option.builder("t")
+						.longOpt("trace")
+						.desc("Output CPU execution trace in Gameboy Doctor format to stdout")
 						.build());
 	}
 }

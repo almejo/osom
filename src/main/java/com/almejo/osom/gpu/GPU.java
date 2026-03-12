@@ -22,6 +22,7 @@ public class GPU {
 
 	private int line = 0;
 	private int clock = 0;
+	private boolean wasEnabled = false;
 	@Getter
 	private int mode = SPRITES;
 	@Getter
@@ -39,9 +40,23 @@ public class GPU {
 	}
 
 	public void update(int cycles) {
-		if (!isEnabled()) {
+		boolean enabled = isEnabled();
+		if (!enabled) {
+			if (wasEnabled) {
+				log.info("GPU disabled — resetting LY to 0 (was line={}, mode={})", line, mode);
+				line = 0;
+				clock = 0;
+				mode = SPRITES;
+				mmu.setScanline(0);
+				updateStatMode();
+			}
+			wasEnabled = false;
 			return;
 		}
+		if (!wasEnabled) {
+			log.info("GPU enabled — starting from line=0, LCDC=0x{}", String.format("%02X", getControlInfo()));
+		}
+		wasEnabled = true;
 		clock += cycles;
 
 		int threshold = currentThreshold();
@@ -199,9 +214,11 @@ public class GPU {
 			bit -= 7;
 			bit *= -1;
 
-			int color = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
-			color |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
-			frameBuffer.setPixel(pixel, line, color);
+			int colorIndex = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
+			colorIndex |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
+			int bgp = mmu.getByte(MMU.PALETTE_BGP);
+			int shade = (bgp >> (colorIndex * 2)) & 0x03;
+			frameBuffer.setPixel(pixel, line, shade);
 		}
 	}
 

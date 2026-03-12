@@ -2,7 +2,7 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 
-abstract class OperationRST_n extends Operation {
+class OperationRST_n extends Operation {
 
 	private final int n;
 
@@ -11,6 +11,7 @@ abstract class OperationRST_n extends Operation {
 		this.n = n;
 	}
 
+	// Flags: - (not affected)
 	@Override
 	void execute() {
 		cpu.pushWordOnStack(cpu.PC.getValue() + getLength());

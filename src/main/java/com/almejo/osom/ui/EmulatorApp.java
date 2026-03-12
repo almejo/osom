@@ -20,11 +20,11 @@ public class EmulatorApp {
 
 	private volatile boolean running = true;
 
-	public void run(boolean bootBios, String file) throws IOException {
+	public void run(boolean bootBios, String file, boolean trace) throws IOException {
 		FrameBuffer frameBuffer = new FrameBuffer();
 		Joypad joypad = new Joypad();
 		Emulator emulator = new Emulator();
-		emulator.initialize(bootBios, file, frameBuffer, joypad);
+		emulator.initialize(bootBios, file, frameBuffer, joypad, trace);
 
 		LCDScreen lcdScreen = new LCDScreen(frameBuffer);
 		lcdScreen.setJoypad(joypad);

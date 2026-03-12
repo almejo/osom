@@ -25,7 +25,7 @@ public class Emulator {
 	@Getter
 	private int totalCycles;
 
-	public void initialize(boolean bootBios, String file, FrameBuffer frameBuffer, Joypad joypad) throws IOException {
+	public void initialize(boolean bootBios, String file, FrameBuffer frameBuffer, Joypad joypad, boolean trace) throws IOException {
 		if (bootBios) {
 			Path biosPath = Paths.get("bios/bios.bin");
 			if (!Files.exists(biosPath)) {
@@ -46,6 +46,7 @@ public class Emulator {
 		mmu.addCartridge(cartridge);
 		cpu = new Z80Cpu(mmu, CYCLES);
 		mmu.setCpu(cpu);
+		cpu.setTraceEnabled(trace);
 		cpu.reset(bootBios);
 	}
 

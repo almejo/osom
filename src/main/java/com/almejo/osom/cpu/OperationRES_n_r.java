@@ -2,7 +2,7 @@ package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
 
-abstract class OperationRES_n_r extends OperationCB {
+class OperationRES_n_r extends OperationCB {
 	private final Register register;
 	private final boolean lo;
 	private final int bit;
@@ -14,6 +14,7 @@ abstract class OperationRES_n_r extends OperationCB {
 		this.bit = bit;
 	}
 
+	// Flags: - (not affected)
 	@Override
 	void execute() {
 		int oldValue = lo ? register.getLo() : register.getHi();

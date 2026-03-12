@@ -63,3 +63,4 @@ bin/
 build/**
 _bmad/
 _bmad-output/
+*.log

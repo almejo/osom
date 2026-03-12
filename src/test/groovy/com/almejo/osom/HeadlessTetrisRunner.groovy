@@ -30,7 +30,7 @@ class HeadlessTetrisRunner {
 		FrameBuffer frameBuffer = new FrameBuffer()
 		Joypad joypad = new Joypad()
 		Emulator emulator = new Emulator()
-		emulator.initialize(false, romPath, frameBuffer, joypad)
+		emulator.initialize(false, romPath, frameBuffer, joypad, false)
 
 		int framesCompleted = 0
 		try {
