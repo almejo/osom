@@ -82,7 +82,7 @@ Graphics processor. Implements scanline-based rendering driven by cycle accumula
 
 - **Timing:** 456 T-cycles per scanline. The GPU uses 1-based line numbering (lines 1-154) rather than the 0-based convention (0-153) described in Pan Docs. Lines 1-144 are visible (background rendering). Line 144 triggers a V-Blank interrupt via `cpu.requestInterrupt()`. Lines 145-153 are the V-Blank period. After line 153, the GPU resets to line 1.
 - **Background rendering:** `renderBackground()` reads the LCDC register (0xFF40) to determine tile data bank (0x8000 unsigned or 0x8800 signed) and tile map (0x9800 or 0x9C00). Applies scroll registers SCY (0xFF43) and SCX (0xFF42) for background offset. Writes pixel colors (0-3) to the FrameBuffer. The GPU reads tile data directly from VRAM via MMU on each scanline — there is no tile cache.
-- **Sprites:** `renderSprites()` is an empty stub — sprite rendering is not yet implemented.
+- **Sprites:** `renderSprites()` scans all 40 OAM entries per scanline, renders sprite pixels with attribute flag support (X-flip, Y-flip, BG priority, palette selection), 8x8/8x16 modes, transparency (color index 0), and enforces the 10-sprite-per-scanline hardware limit. See [docs/sprite-rendering.md](sprite-rendering.md) for a detailed explanation of Game Boy sprite hardware.
 - **LCD enable:** The GPU checks bit 7 of LCDC. If the LCD is disabled, `update()` returns immediately.
 
 ### FrameBuffer (`gpu/FrameBuffer.java`)

@@ -7,8 +7,8 @@ class OperationAND_r extends Operation {
 	private final Register register;
 	private final boolean lo;
 
-	OperationAND_r(Z80Cpu cpu, MMU mmu, int m, int t, int code, Register register, boolean lo) {
-		super(cpu, mmu, m, t, code, 1);
+	OperationAND_r(Z80Cpu cpu, MMU mmu, int code, Register register, boolean lo) {
+		super(cpu, mmu, 1, 4, code, 1);
 		this.register = register;
 		this.lo = lo;
 	}
@@ -23,6 +23,5 @@ class OperationAND_r extends Operation {
 		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
 		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, true);
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, false);
-
 	}
 }

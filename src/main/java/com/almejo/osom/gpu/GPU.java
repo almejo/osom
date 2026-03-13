@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+
 @Slf4j
 public class GPU {
 	private static final int H_BLANK = 0;
@@ -19,6 +21,16 @@ public class GPU {
 	private static final int SCANLINE_CYCLES = 456;
 	private static final int VISIBLE_LINES = 144;
 	private static final int VBLANK_LINES = 10;
+	private static final int SCREEN_WIDTH = 160;
+
+	private static final int OAM_ENTRY_COUNT = 40;
+	private static final int OAM_BASE_ADDRESS = 0xFE00;
+	private static final int OAM_ENTRY_SIZE = 4;
+	private static final int MAX_SPRITES_PER_LINE = 10;
+	private static final int SPRITE_TILE_DATA_BASE = 0x8000;
+	private static final int BYTES_PER_TILE = 16;
+	private static final int SPRITE_Y_OFFSET = 16;
+	private static final int SPRITE_X_OFFSET = 8;
 
 	private int line = 0;
 	private int clock = 0;
@@ -29,6 +41,7 @@ public class GPU {
 	@Setter
 	private FrameBuffer frameBuffer;
 	private MMU mmu;
+	private final int[] backgroundColorIndices = new int[SCREEN_WIDTH];
 
 	public GPU() {
 	}
@@ -165,6 +178,7 @@ public class GPU {
 
 	private void drawLine() {
 		int control = getControlInfo();
+		Arrays.fill(backgroundColorIndices, 0);
 		if (backgroundEnabled(control)) {
 			renderBackground(control);
 		}
@@ -174,6 +188,107 @@ public class GPU {
 	}
 
 	private void renderSprites() {
+		int control = getControlInfo();
+		int spriteHeight = getSpriteHeight(control);
+		int spritesOnLine = 0;
+
+		for (int sprite = 0; sprite < OAM_ENTRY_COUNT; sprite++) {
+			if (spritesOnLine >= MAX_SPRITES_PER_LINE) {
+				break;
+			}
+
+			int oamAddress = OAM_BASE_ADDRESS + sprite * OAM_ENTRY_SIZE;
+			int yPosition = mmu.getByte(oamAddress);
+			int xPosition = mmu.getByte(oamAddress + 1);
+			int tileIndex = mmu.getByte(oamAddress + 2);
+			int attributes = mmu.getByte(oamAddress + 3);
+
+			int spriteY = yPosition - SPRITE_Y_OFFSET;
+			if (!isSpriteOnScanline(spriteY, spriteHeight)) {
+				continue;
+			}
+
+			spritesOnLine++;
+
+			boolean xFlip = BitUtils.isBitSetted(attributes, 5);
+			boolean yFlip = BitUtils.isBitSetted(attributes, 6);
+			boolean bgPriority = BitUtils.isBitSetted(attributes, 7);
+			boolean usePalette1 = BitUtils.isBitSetted(attributes, 4);
+
+			int tileRow = resolveSpriteTileRow(line - spriteY, spriteHeight, yFlip);
+			int[] adjusted = adjustTileIndexForDoubleHeight(tileIndex, tileRow, spriteHeight);
+			tileIndex = adjusted[0];
+			tileRow = adjusted[1];
+
+			int tileDataAddress = SPRITE_TILE_DATA_BASE + tileIndex * BYTES_PER_TILE + tileRow * 2;
+			int byte1 = mmu.getByte(tileDataAddress);
+			int byte2 = mmu.getByte(tileDataAddress + 1);
+
+			for (int column = 0; column < 8; column++) {
+				int screenX = xPosition - SPRITE_X_OFFSET + column;
+				if (isPixelOffScreen(screenX)) {
+					continue;
+				}
+
+				int bit = xFlip ? column : 7 - column;
+				int colorIndex = decodeTileColorIndex(byte1, byte2, bit);
+				renderSpritePixel(screenX, colorIndex, bgPriority, usePalette1);
+			}
+		}
+	}
+
+	int getSpriteHeight(int control) {
+		return BitUtils.isBitSetted(control, 2) ? 16 : 8;
+	}
+
+	boolean isSpriteOnScanline(int spriteY, int spriteHeight) {
+		return line >= spriteY && line < spriteY + spriteHeight;
+	}
+
+	boolean isPixelOffScreen(int screenX) {
+		return screenX < 0 || screenX >= SCREEN_WIDTH;
+	}
+
+	boolean isHiddenBehindBackground(boolean bgPriority, int screenX) {
+		return bgPriority && backgroundColorIndices[screenX] != 0;
+	}
+
+	int resolveSpriteTileRow(int tileRow, int spriteHeight, boolean yFlip) {
+		if (yFlip) {
+			return spriteHeight - 1 - tileRow;
+		}
+		return tileRow;
+	}
+
+	int[] adjustTileIndexForDoubleHeight(int tileIndex, int tileRow, int spriteHeight) {
+		if (spriteHeight == 16) {
+			if (tileRow >= 8) {
+				return new int[]{tileIndex | 0x01, tileRow - 8};
+			} else {
+				return new int[]{tileIndex & 0xFE, tileRow};
+			}
+		}
+		return new int[]{tileIndex, tileRow};
+	}
+
+	int decodeTileColorIndex(int byte1, int byte2, int bit) {
+		int colorIndex = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
+		colorIndex |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
+		return colorIndex;
+	}
+
+	void renderSpritePixel(int screenX, int colorIndex, boolean bgPriority, boolean usePalette1) {
+		if (colorIndex == 0) {
+			return;
+		}
+
+		if (isHiddenBehindBackground(bgPriority, screenX)) {
+			return;
+		}
+
+		int palette = usePalette1 ? mmu.getByte(MMU.PALETTE_OBP1) : mmu.getByte(MMU.PALETTE_OBP0);
+		int shade = (palette >> (colorIndex * 2)) & 0x03;
+		frameBuffer.setPixel(screenX, line, shade);
 	}
 
 	private boolean spritesEnabled(int control) {
@@ -214,8 +329,8 @@ public class GPU {
 			bit -= 7;
 			bit *= -1;
 
-			int colorIndex = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
-			colorIndex |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
+			int colorIndex = decodeTileColorIndex(byte1, byte2, bit);
+			backgroundColorIndices[pixel] = colorIndex;
 			int bgp = mmu.getByte(MMU.PALETTE_BGP);
 			int shade = (bgp >> (colorIndex * 2)) & 0x03;
 			frameBuffer.setPixel(pixel, line, shade);

@@ -1,6 +1,7 @@
 package com.almejo.osom.cpu;
 
 import com.almejo.osom.memory.MMU;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,7 +61,9 @@ public class Z80Cpu {
 	public final Register PC = new Register("PC");
 	final Register SP = new Register("SP");
 	public final Clock clock = new Clock();
-	boolean halted = false;
+	@Getter
+	@Setter
+	private boolean halted;
 	private int dividerCounter;
 
 	public Z80Cpu(MMU mmu, int cycles) {
@@ -305,12 +308,12 @@ public class Z80Cpu {
 		addOpcode(new OperationADC_r(this, this.mmu, 0x8D, HL, true)); // ADC A, L
 		addOpcode(new OperationADC_r(this, this.mmu, 0x8F, AF, false)); // ADC A, A
 		addOpcode(new OperationADC_aHL(this, this.mmu)); // ADC A, (HL)
-		addOpcode(new OperationSUB_r(this, this.mmu, 1, 4, 0x91, BC, true)); // SUB C
-		addOpcode(new OperationSUB_r(this, this.mmu, 1, 4, 0x92, DE, false)); // SUB D
-		addOpcode(new OperationSUB_r(this, this.mmu, 1, 4, 0x93, DE, true)); // SUB E
-		addOpcode(new OperationSUB_r(this, this.mmu, 1, 4, 0x94, HL, false)); // SUB H
-		addOpcode(new OperationSUB_r(this, this.mmu, 1, 4, 0x95, HL, true)); // SUB L
-		addOpcode(new OperationSUB_r(this, this.mmu, 1, 4, 0x97, AF, false)); // SUB A
+		addOpcode(new OperationSUB_r(this, this.mmu,0x91, BC, true)); // SUB C
+		addOpcode(new OperationSUB_r(this, this.mmu,0x92, DE, false)); // SUB D
+		addOpcode(new OperationSUB_r(this, this.mmu,0x93, DE, true)); // SUB E
+		addOpcode(new OperationSUB_r(this, this.mmu,0x94, HL, false)); // SUB H
+		addOpcode(new OperationSUB_r(this, this.mmu,0x95, HL, true)); // SUB L
+		addOpcode(new OperationSUB_r(this, this.mmu,0x97, AF, false)); // SUB A
 		addOpcode(new OperationSUB_aHL(this, this.mmu)); // SUB (HL)
 		addOpcode(new OperationSBC_r(this, this.mmu, 0x98, BC, false)); // SBC A, B
 		addOpcode(new OperationSBC_r(this, this.mmu, 0x99, BC, true)); // SBC A, C
@@ -320,11 +323,11 @@ public class Z80Cpu {
 		addOpcode(new OperationSBC_r(this, this.mmu, 0x9D, HL, true)); // SBC A, L
 		addOpcode(new OperationSBC_r(this, this.mmu, 0x9F, AF, false)); // SBC A, A
 		addOpcode(new OperationSBC_aHL(this, this.mmu)); // SBC A, (HL)
-		addOpcode(new OperationAND_r(this, this.mmu, 1, 4, 0xA0, BC, false)); // AND B
-		addOpcode(new OperationAND_r(this, this.mmu, 1, 4, 0xA2, DE, false)); // AND D
-		addOpcode(new OperationAND_r(this, this.mmu, 1, 4, 0xA3, DE, true)); // AND E
-		addOpcode(new OperationAND_r(this, this.mmu, 1, 4, 0xA4, HL, false)); // AND H
-		addOpcode(new OperationAND_r(this, this.mmu, 1, 4, 0xA5, HL, true)); // AND L
+		addOpcode(new OperationAND_r(this, this.mmu,0xA0, BC, false)); // AND B
+		addOpcode(new OperationAND_r(this, this.mmu,0xA2, DE, false)); // AND D
+		addOpcode(new OperationAND_r(this, this.mmu,0xA3, DE, true)); // AND E
+		addOpcode(new OperationAND_r(this, this.mmu,0xA4, HL, false)); // AND H
+		addOpcode(new OperationAND_r(this, this.mmu,0xA5, HL, true)); // AND L
 		addOpcode(new OperationAND_aHL(this, this.mmu)); // AND (HL)
 		addOpcode(new OperationXOR_r(this, this.mmu, 0xA8, BC, false)); // XOR B
 		addOpcode(new OperationXOR_r(this, this.mmu, 0xAA, DE, false)); // XOR D
@@ -332,11 +335,11 @@ public class Z80Cpu {
 		addOpcode(new OperationXOR_r(this, this.mmu, 0xAC, HL, false)); // XOR H
 		addOpcode(new OperationXOR_r(this, this.mmu, 0xAD, HL, true)); // XOR L
 		addOpcode(new OperationXOR_aHL(this, this.mmu)); // XOR (HL)
-		addOpcode(new OperationOR_r(this, this.mmu, 1, 4, 0xB2, DE, false)); // OR D
-		addOpcode(new OperationOR_r(this, this.mmu, 1, 4, 0xB3, DE, true)); // OR E
-		addOpcode(new OperationOR_r(this, this.mmu, 1, 4, 0xB4, HL, false)); // OR H
-		addOpcode(new OperationOR_r(this, this.mmu, 1, 4, 0xB5, HL, true)); // OR L
-		addOpcode(new OperationOR_r(this, this.mmu, 1, 4, 0xB7, AF, false)); // OR A
+		addOpcode(new OperationOR_r(this, this.mmu,0xB2, DE, false)); // OR D
+		addOpcode(new OperationOR_r(this, this.mmu,0xB3, DE, true)); // OR E
+		addOpcode(new OperationOR_r(this, this.mmu,0xB4, HL, false)); // OR H
+		addOpcode(new OperationOR_r(this, this.mmu,0xB5, HL, true)); // OR L
+		addOpcode(new OperationOR_r(this, this.mmu,0xB7, AF, false)); // OR A
 		addOpcode(new OperationOR_aHL(this, this.mmu)); // OR (HL)
 		addOpcode(new OperationCP_r(this, this.mmu, 0xB8, BC, false)); // CP B
 		addOpcode(new OperationCP_r(this, this.mmu, 0xB9, BC, true)); // CP C

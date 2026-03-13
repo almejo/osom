@@ -14,12 +14,6 @@ class OperationADD_SP_n extends Operation {
 	@Override
 	void execute() {
 		int n = toSignedByte(mmu.getByte(cpu.PC.getValue() + 1));
-		int sp = cpu.SP.getValue();
-		int result = sp + n;
-		cpu.setFlag(Z80Cpu.FLAG_ZERO, false);
-		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
-		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, ((sp ^ n ^ result) & 0x10) != 0);
-		cpu.setFlag(Z80Cpu.FLAG_CARRY, ((sp ^ n ^ result) & 0x100) != 0);
-		cpu.SP.setValue(result & 0xFFFF);
+		cpu.SP.setValue(cpu.alu.addSignedByteToWord(cpu.SP.getValue(), n));
 	}
 }

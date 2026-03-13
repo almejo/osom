@@ -11,6 +11,6 @@ class OperationHALT extends Operation {
 	// Flags: - (not affected)
 	@Override
 	void execute() {
-		cpu.halted = true;
+		cpu.setHalted(true);
 	}
 }

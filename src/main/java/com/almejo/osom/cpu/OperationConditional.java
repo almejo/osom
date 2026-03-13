@@ -9,7 +9,6 @@ abstract class OperationConditional extends Operation {
 	OperationConditional(Z80Cpu cpu, MMU mmu, int m, int t, int t2, int code, int length) {
 		super(cpu, mmu, m, t, code, length);
 		this.t2 = t2;
-		this.actionTaken = false;
 	}
 
 	@Override

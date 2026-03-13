@@ -134,6 +134,15 @@ public class ALU {
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, result > 0xFF);
 	}
 
+	public int addSignedByteToWord(int base, int offset) {
+		int result = base + offset;
+		cpu.setFlag(Z80Cpu.FLAG_ZERO, false);
+		cpu.setFlag(Z80Cpu.FLAG_SUBTRACT, false);
+		cpu.setFlag(Z80Cpu.FLAG_HALF_CARRY, ((base ^ offset ^ result) & 0x10) != 0);
+		cpu.setFlag(Z80Cpu.FLAG_CARRY, ((base ^ offset ^ result) & 0x100) != 0);
+		return result & 0xFFFF;
+	}
+
 	public void sbcRegisterHI(Register register, int n) {
 		int carry = cpu.isFlagSetted(Z80Cpu.FLAG_CARRY) ? 1 : 0;
 		int oldValue = register.getHi();

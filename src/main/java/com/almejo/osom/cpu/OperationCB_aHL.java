@@ -119,6 +119,8 @@ class OperationCB_aHL extends OperationCB {
 				mmu.setByte(address, BitUtils.setBit(value, bit));
 				break;
 			}
+			default:
+				throw new IllegalStateException("Invalid CB (HL) operation type: " + operation);
 		}
 	}
 }

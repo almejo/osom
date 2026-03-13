@@ -18,6 +18,6 @@ class OperationBIT_b_r extends OperationCB {
 	@Override
 	void execute() {
 		int value = lo ? register.getLo() : register.getHi();
-		cpu.alu.setBITFlags((value & 1 << b) == 0);
+		cpu.alu.setBITFlags((value & (1 << b)) == 0);
 	}
 }
