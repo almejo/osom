@@ -372,3 +372,34 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/main/java/com/almejo/osom/ui/LCDScreen.java` — Replaced debug colors (black/green/red/blue) with DMG green shades array; `getColor()` now indexes into `DMG_SHADES[]`
 - `src/test/groovy/com/almejo/osom/gpu/GPUStateMachineSpec.groovy` — Added `PALETTE_BGP = 0xE4` (identity palette) to 2 rendering tests broken by palette change
 - Removed session-specific diagnostic logs: PC watchpoints (0x0000, 0x021B, 0x02B4), GAME_STATUS tracker, BUTTON_DOWN tracker, `gameStatusName()` method; downgraded non-VBlank interrupt and stack high-water logs to DEBUG level
+
+---
+
+### 2026-03-13 — Refactor renderSprites() into Descriptive Helpers (Story 4-P4)
+
+**What:** Extracted 8 helper methods from `renderSprites()` (~70 lines) in GPU.java to improve readability. Also reused `decodeTileColorIndex()` in `renderBackground()` to eliminate duplicated 2bpp decoding logic. Pure refactoring — no behavioral changes.
+
+**Hardware concept:** Game Boy sprite rendering involves multiple concerns: OAM scanning (40 entries), scanline intersection, 8x16 tile index manipulation (LSB clear/set), Y-flip/X-flip transforms, 2bpp color decoding, transparency (color index 0), BG priority, and palette selection (OBP0/OBP1). Each concern maps naturally to a named method.
+
+**What we learned:** Extracting methods with descriptive names (e.g., `isHiddenBehindBackground`, `adjustTileIndexForDoubleHeight`) makes the sprite rendering pipeline readable at a glance. The 2bpp color decoding logic (`decodeTileColorIndex`) was identical between sprites and background — extracting it eliminated duplication across both renderers. Making helpers package-private (default access) allows direct unit testing from Groovy specs in the same package.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/gpu/GPU.java` — Extracted 8 package-private helpers from `renderSprites()`: `getSpriteHeight()`, `isSpriteOnScanline()`, `isPixelOffScreen()`, `isHiddenBehindBackground()`, `resolveSpriteTileRow()`, `adjustTileIndexForDoubleHeight()`, `decodeTileColorIndex()`, `renderSpritePixel()`. Reused `decodeTileColorIndex()` in `renderBackground()`.
+- `src/test/groovy/com/almejo/osom/gpu/SpriteRenderingHelpersSpec.groovy` — New: 29 Spock tests covering all 8 extracted helpers with edge cases
+
+---
+
+### 2026-03-14 — Window Layer Rendering (Story 5.1)
+
+**What:** Implemented the Game Boy window layer — the third rendering layer that draws on top of the background and below sprites. Then refactored both `renderBackground()` and `renderWindow()` to share 7 extracted helpers, replaced all GPU magic numbers with named constants, and fixed a 16-bit address wrapping bug in MMU.
+
+**Hardware concept:** The Game Boy GPU has three rendering layers: background, window, and sprites. The window is a fixed overlay controlled by LCDC bit 5 (enable), bit 6 (tile map select: 0x9800 or 0x9C00), and shares the tile data area with the background (LCDC bit 4). Window position is set by WY (0xFF4A) and WX (0xFF4B, offset by 7). Unlike the background, the window does not scroll — it uses an internal line counter that only increments on scanlines where the window was actually visible, and resets at V-Blank. The signed/unsigned tile data modes (LCDC bit 4) exist so that BG/window tiles 0-127 in signed mode share VRAM with sprite tiles 128-255 — a memory optimization in the Game Boy's 8 KiB VRAM.
+
+**What we learned:** The key difference between background and window rendering is the Y coordinate source. Background uses `(scrollY + scanline) & 0xFF` for wrapping scroll, while window uses an internal line counter with no wrapping. This counter must only increment when the window is actually rendered on a scanline (not just enabled). The window overwrites `backgroundColorIndices[]` so that sprite BG priority checks correctly reference the topmost layer beneath sprites. When writing tests, BG and window tile maps sharing the same address (0x9800) creates subtle test interference — separating them with LCDC bit 6 makes tests reliable. Also discovered that `MMU.setWord(0xFFFF, value)` overflowed to 0x10000 — address arithmetic must be masked with `& 0xFFFF`.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/gpu/GPU.java` — Added `windowLineCounter` field, `windowEnabled()`, `renderWindow()` method. Modified `drawLine()` to call `renderWindow()` between background and sprites. Reset counter at V-Blank transition. Extracted 7 shared helpers from `renderBackground()`/`renderWindow()`. Replaced all magic numbers with named constants (LCDC bits, STAT bits, sprite attributes, tile addresses).
+- `src/main/java/com/almejo/osom/memory/MMU.java` — Fixed `getWord()`/`setWord()` to mask addresses with `& 0xFFFF`
+- `src/test/groovy/com/almejo/osom/gpu/WindowRenderingSpec.groovy` — New: 18 Spock tests covering window rendering scenarios
+- `src/test/groovy/com/almejo/osom/gpu/GPUSpec.groovy` — New: unit tests for extracted tile addressing helpers
+- `src/test/groovy/com/almejo/osom/memory/MMUSpec.groovy` — New: unit tests for getWord/setWord address wrapping

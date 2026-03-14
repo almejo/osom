@@ -23,17 +23,47 @@ public class GPU {
 	private static final int VBLANK_LINES = 10;
 	private static final int SCREEN_WIDTH = 160;
 
+	private static final int TILE_DATA_UNSIGNED_BASE = 0x8000;
+	private static final int TILE_DATA_SIGNED_BASE = 0x8800;
+	private static final int TILE_MAP_LOW = 0x9800;
+	private static final int TILE_MAP_HIGH = 0x9C00;
+	private static final int BYTES_PER_TILE = 16;
+	private static final int BYTES_PER_TILE_ROW = 2;
+	private static final int TILE_WIDTH_PIXELS = 8;
+	private static final int TILE_MAP_ROW_LENGTH = 32;
+	private static final int SIGNED_TILE_INDEX_OFFSET = 128;
+
+	private static final int LCDC_BG_ENABLE = 0;
+	private static final int LCDC_SPRITE_ENABLE = 1;
+	private static final int LCDC_SPRITE_SIZE = 2;
+	private static final int LCDC_BG_TILE_MAP = 3;
+	private static final int LCDC_TILE_DATA = 4;
+	private static final int LCDC_WINDOW_ENABLE = 5;
+	private static final int LCDC_WINDOW_TILE_MAP = 6;
+	private static final int LCDC_LCD_ENABLE = 7;
+
+	private static final int STAT_HBLANK_INTERRUPT = 3;
+	private static final int STAT_VBLANK_INTERRUPT = 4;
+	private static final int STAT_OAM_INTERRUPT = 5;
+	private static final int STAT_LYC_INTERRUPT = 6;
+
+	private static final int SPRITE_ATTR_PALETTE = 4;
+	private static final int SPRITE_ATTR_X_FLIP = 5;
+	private static final int SPRITE_ATTR_Y_FLIP = 6;
+	private static final int SPRITE_ATTR_BG_PRIORITY = 7;
+
 	private static final int OAM_ENTRY_COUNT = 40;
 	private static final int OAM_BASE_ADDRESS = 0xFE00;
 	private static final int OAM_ENTRY_SIZE = 4;
 	private static final int MAX_SPRITES_PER_LINE = 10;
-	private static final int SPRITE_TILE_DATA_BASE = 0x8000;
-	private static final int BYTES_PER_TILE = 16;
 	private static final int SPRITE_Y_OFFSET = 16;
 	private static final int SPRITE_X_OFFSET = 8;
 
+	private static final int WINDOW_X_OFFSET = 7;
+
 	private int line = 0;
 	private int clock = 0;
+	private int windowLineCounter = 0;
 	private boolean wasEnabled = false;
 	@Getter
 	private int mode = SPRITES;
@@ -91,6 +121,7 @@ public class GPU {
 					checkLyCoincidence();
 					if (line == VISIBLE_LINES) {
 						mode = V_BLANK;
+						windowLineCounter = 0;
 						mmu.requestInterrupt(MMU.INTERRUPT_VBLANK);
 					} else {
 						mode = SPRITES;
@@ -128,13 +159,13 @@ public class GPU {
 		// Pan Docs: STAT bit 3 = H-Blank interrupt, bit 4 = V-Blank interrupt, bit 5 = OAM interrupt
 		switch (mode) {
 			case H_BLANK:
-				shouldFire = BitUtils.isBitSetted(stat, 3);
+				shouldFire = BitUtils.isBitSetted(stat, STAT_HBLANK_INTERRUPT);
 				break;
 			case V_BLANK:
-				shouldFire = BitUtils.isBitSetted(stat, 4);
+				shouldFire = BitUtils.isBitSetted(stat, STAT_VBLANK_INTERRUPT);
 				break;
 			case SPRITES:
-				shouldFire = BitUtils.isBitSetted(stat, 5);
+				shouldFire = BitUtils.isBitSetted(stat, STAT_OAM_INTERRUPT);
 				break;
 			default:
 				break;
@@ -148,7 +179,7 @@ public class GPU {
 		int lyc = mmu.getByte(MMU.LCD_LY_COMPARE);
 		boolean coincidence = (line == lyc);
 		mmu.setStatCoincidenceFlag(coincidence);
-		if (coincidence && BitUtils.isBitSetted(mmu.getByte(MMU.LCD_STATUS), 6)) {
+		if (coincidence && BitUtils.isBitSetted(mmu.getByte(MMU.LCD_STATUS), STAT_LYC_INTERRUPT)) {
 			mmu.requestInterrupt(MMU.INTERRUPT_LCD_STAT);
 		}
 	}
@@ -169,7 +200,7 @@ public class GPU {
 	}
 
 	private boolean isEnabled() {
-		return BitUtils.isBitSetted(getControlInfo(), 7);
+		return BitUtils.isBitSetted(getControlInfo(), LCDC_LCD_ENABLE);
 	}
 
 	private int getControlInfo() {
@@ -181,6 +212,9 @@ public class GPU {
 		Arrays.fill(backgroundColorIndices, 0);
 		if (backgroundEnabled(control)) {
 			renderBackground(control);
+		}
+		if (windowEnabled(control)) {
+			renderWindow(control);
 		}
 		if (spritesEnabled(control)) {
 			renderSprites();
@@ -210,27 +244,27 @@ public class GPU {
 
 			spritesOnLine++;
 
-			boolean xFlip = BitUtils.isBitSetted(attributes, 5);
-			boolean yFlip = BitUtils.isBitSetted(attributes, 6);
-			boolean bgPriority = BitUtils.isBitSetted(attributes, 7);
-			boolean usePalette1 = BitUtils.isBitSetted(attributes, 4);
+			boolean xFlip = BitUtils.isBitSetted(attributes, SPRITE_ATTR_X_FLIP);
+			boolean yFlip = BitUtils.isBitSetted(attributes, SPRITE_ATTR_Y_FLIP);
+			boolean bgPriority = BitUtils.isBitSetted(attributes, SPRITE_ATTR_BG_PRIORITY);
+			boolean usePalette1 = BitUtils.isBitSetted(attributes, SPRITE_ATTR_PALETTE);
 
 			int tileRow = resolveSpriteTileRow(line - spriteY, spriteHeight, yFlip);
 			int[] adjusted = adjustTileIndexForDoubleHeight(tileIndex, tileRow, spriteHeight);
 			tileIndex = adjusted[0];
 			tileRow = adjusted[1];
 
-			int tileDataAddress = SPRITE_TILE_DATA_BASE + tileIndex * BYTES_PER_TILE + tileRow * 2;
+			int tileDataAddress = TILE_DATA_UNSIGNED_BASE + tileIndex * BYTES_PER_TILE + tileRow * BYTES_PER_TILE_ROW;
 			int byte1 = mmu.getByte(tileDataAddress);
 			int byte2 = mmu.getByte(tileDataAddress + 1);
 
-			for (int column = 0; column < 8; column++) {
+			for (int column = 0; column < TILE_WIDTH_PIXELS; column++) {
 				int screenX = xPosition - SPRITE_X_OFFSET + column;
 				if (isPixelOffScreen(screenX)) {
 					continue;
 				}
 
-				int bit = xFlip ? column : 7 - column;
+				int bit = xFlip ? column : (TILE_WIDTH_PIXELS - 1) - column;
 				int colorIndex = decodeTileColorIndex(byte1, byte2, bit);
 				renderSpritePixel(screenX, colorIndex, bgPriority, usePalette1);
 			}
@@ -238,7 +272,7 @@ public class GPU {
 	}
 
 	int getSpriteHeight(int control) {
-		return BitUtils.isBitSetted(control, 2) ? 16 : 8;
+		return BitUtils.isBitSetted(control, LCDC_SPRITE_SIZE) ? 16 : 8;
 	}
 
 	boolean isSpriteOnScanline(int spriteY, int spriteHeight) {
@@ -262,8 +296,8 @@ public class GPU {
 
 	int[] adjustTileIndexForDoubleHeight(int tileIndex, int tileRow, int spriteHeight) {
 		if (spriteHeight == 16) {
-			if (tileRow >= 8) {
-				return new int[]{tileIndex | 0x01, tileRow - 8};
+			if (tileRow >= TILE_WIDTH_PIXELS) {
+				return new int[]{tileIndex | 0x01, tileRow - TILE_WIDTH_PIXELS};
 			} else {
 				return new int[]{tileIndex & 0xFE, tileRow};
 			}
@@ -292,53 +326,97 @@ public class GPU {
 	}
 
 	private boolean spritesEnabled(int control) {
-		return BitUtils.isBitSetted(control, 1);
+		return BitUtils.isBitSetted(control, LCDC_SPRITE_ENABLE);
 	}
 
 	private void renderBackground(int control) {
 		int scrollY = mmu.getByte(MMU.LCD_SCROLL_Y);
 		int scrollX = mmu.getByte(MMU.LCD_SCROLL_X);
-		int tilesData;
-		boolean useUnsignedIdentifier = true;
-		int mapLayout;
-		if (BitUtils.isBitSetted(control, 4)) {
-			tilesData = 0x8000;
-		} else {
-			tilesData = 0x8800;
-			useUnsignedIdentifier = false;
-		}
-		if (BitUtils.isBitSetted(control, 3)) {
-			mapLayout = 0x9C00;
-		} else {
-			mapLayout = 0x9800;
-		}
+		int tileDataBase = getTileDataBase(control);
+		boolean useUnsigned = useUnsignedTileAddressing(control);
+		int tileMapBase = getBackgroundTileMapBase(control);
 
 		int posY = (scrollY + line) & 0xFF;
-		int tileRow = (posY / 8) * 32;
-		for (int pixel = 0; pixel < 160; pixel++) {
+		int tileMapRow = (posY / TILE_WIDTH_PIXELS) * TILE_MAP_ROW_LENGTH;
+		int tileLine = (posY % TILE_WIDTH_PIXELS) * BYTES_PER_TILE_ROW;
+		for (int pixel = 0; pixel < SCREEN_WIDTH; pixel++) {
 			int xPos = (pixel + scrollX) & 0xFF;
-			int tileColumn = (xPos / 8);
-
-			int tileAddress = mapLayout + tileRow + tileColumn;
-			int tileIndex = useUnsignedIdentifier ? mmu.getByte(tileAddress) : mmu.getByteSigned(tileAddress);
-			int tileLocation = tilesData + (tileIndex + (useUnsignedIdentifier ? 0 : 128)) * 16;
-			int tileLine = (posY % 8) * 2;
-			int byte1 = mmu.getByte(tileLocation + tileLine);
-			int byte2 = mmu.getByte(tileLocation + tileLine + 1);
-			int bit = xPos % 8;
-			bit -= 7;
-			bit *= -1;
-
-			int colorIndex = decodeTileColorIndex(byte1, byte2, bit);
-			backgroundColorIndices[pixel] = colorIndex;
-			int bgp = mmu.getByte(MMU.PALETTE_BGP);
-			int shade = (bgp >> (colorIndex * 2)) & 0x03;
-			frameBuffer.setPixel(pixel, line, shade);
+			int tileIndex = readTileIndex(tileMapBase, tileMapRow, xPos / TILE_WIDTH_PIXELS, useUnsigned);
+			int tileDataAddress = resolveTileDataAddress(tileDataBase, useUnsigned, tileIndex);
+			int byte1 = mmu.getByte(tileDataAddress + tileLine);
+			int byte2 = mmu.getByte(tileDataAddress + tileLine + 1);
+			int colorIndex = decodeTileColorIndex(byte1, byte2, (TILE_WIDTH_PIXELS - 1) - (xPos % TILE_WIDTH_PIXELS));
+			renderBackgroundPixel(pixel, colorIndex);
 		}
 	}
 
+	private boolean windowEnabled(int control) {
+		return BitUtils.isBitSetted(control, LCDC_WINDOW_ENABLE);
+	}
+
+	private void renderWindow(int control) {
+		int windowY = mmu.getByte(MMU.WINDOW_Y);
+		if (line < windowY) {
+			return;
+		}
+		int startX = mmu.getByte(MMU.WINDOW_X) - WINDOW_X_OFFSET;
+		if (startX > SCREEN_WIDTH - 1) {
+			return;
+		}
+
+		int tileDataBase = getTileDataBase(control);
+		boolean useUnsigned = useUnsignedTileAddressing(control);
+		int tileMapBase = getWindowTileMapBase(control);
+
+		int tileMapRow = (windowLineCounter / TILE_WIDTH_PIXELS) * TILE_MAP_ROW_LENGTH;
+		int tileLine = (windowLineCounter % TILE_WIDTH_PIXELS) * BYTES_PER_TILE_ROW;
+		int firstPixel = Math.max(0, startX);
+		for (int pixel = firstPixel; pixel < SCREEN_WIDTH; pixel++) {
+			int windowRelativeX = pixel - startX;
+			int tileIndex = readTileIndex(tileMapBase, tileMapRow, windowRelativeX / TILE_WIDTH_PIXELS, useUnsigned);
+			int tileDataAddress = resolveTileDataAddress(tileDataBase, useUnsigned, tileIndex);
+			int byte1 = mmu.getByte(tileDataAddress + tileLine);
+			int byte2 = mmu.getByte(tileDataAddress + tileLine + 1);
+			int colorIndex = decodeTileColorIndex(byte1, byte2, (TILE_WIDTH_PIXELS - 1) - (windowRelativeX % TILE_WIDTH_PIXELS));
+			renderBackgroundPixel(pixel, colorIndex);
+		}
+		windowLineCounter++;
+	}
+
+	int getTileDataBase(int control) {
+		return BitUtils.isBitSetted(control, LCDC_TILE_DATA) ? TILE_DATA_UNSIGNED_BASE : TILE_DATA_SIGNED_BASE;
+	}
+
+	boolean useUnsignedTileAddressing(int control) {
+		return BitUtils.isBitSetted(control, LCDC_TILE_DATA);
+	}
+
+	int getBackgroundTileMapBase(int control) {
+		return BitUtils.isBitSetted(control, LCDC_BG_TILE_MAP) ? TILE_MAP_HIGH : TILE_MAP_LOW;
+	}
+
+	int getWindowTileMapBase(int control) {
+		return BitUtils.isBitSetted(control, LCDC_WINDOW_TILE_MAP) ? TILE_MAP_HIGH : TILE_MAP_LOW;
+	}
+
+	int readTileIndex(int tileMapBase, int tileMapRow, int tileColumn, boolean useUnsigned) {
+		int tileAddress = tileMapBase + tileMapRow + tileColumn;
+		return useUnsigned ? mmu.getByte(tileAddress) : mmu.getByteSigned(tileAddress);
+	}
+
+	int resolveTileDataAddress(int tileDataBase, boolean useUnsigned, int tileIndex) {
+		return tileDataBase + (tileIndex + (useUnsigned ? 0 : SIGNED_TILE_INDEX_OFFSET)) * BYTES_PER_TILE;
+	}
+
+	void renderBackgroundPixel(int pixel, int colorIndex) {
+		backgroundColorIndices[pixel] = colorIndex;
+		int bgp = mmu.getByte(MMU.PALETTE_BGP);
+		int shade = (bgp >> (colorIndex * 2)) & 0x03;
+		frameBuffer.setPixel(pixel, line, shade);
+	}
+
 	private boolean backgroundEnabled(int control) {
-		return BitUtils.isBitSetted(control, 0);
+		return BitUtils.isBitSetted(control, LCDC_BG_ENABLE);
 	}
 
 }

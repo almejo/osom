@@ -4,7 +4,7 @@ import com.almejo.osom.cpu.Z80Cpu
 import com.almejo.osom.memory.MMU
 import spock.lang.Specification
 
-class SpriteRenderingHelpersSpec extends Specification {
+class GPUSpec extends Specification {
 
 	private MMU mmu
 	private Z80Cpu cpu
@@ -252,6 +252,123 @@ class SpriteRenderingHelpersSpec extends Specification {
 
 		then: "shade is from OBP1 reversed palette: color index 1 → shade 2"
 		gpu.frameBuffer.getPixels()[10][0] == 2
+	}
+
+	// === getTileDataBase ===
+
+	def "getTileDataBase returns 0x8000 when LCDC bit 4 is set"() {
+		expect: "bit 4 set (0x10) selects unsigned tile data base"
+		gpu.getTileDataBase(0x10) == 0x8000
+	}
+
+	def "getTileDataBase returns 0x8800 when LCDC bit 4 is clear"() {
+		expect: "bit 4 clear selects signed tile data base"
+		gpu.getTileDataBase(0x00) == 0x8800
+	}
+
+	// === useUnsignedTileAddressing ===
+
+	def "useUnsignedTileAddressing returns true when LCDC bit 4 is set"() {
+		expect:
+		gpu.useUnsignedTileAddressing(0x10)
+	}
+
+	def "useUnsignedTileAddressing returns false when LCDC bit 4 is clear"() {
+		expect:
+		!gpu.useUnsignedTileAddressing(0x00)
+	}
+
+	// === getBackgroundTileMapBase ===
+
+	def "getBackgroundTileMapBase returns 0x9800 when LCDC bit 3 is clear"() {
+		expect:
+		gpu.getBackgroundTileMapBase(0x00) == 0x9800
+	}
+
+	def "getBackgroundTileMapBase returns 0x9C00 when LCDC bit 3 is set"() {
+		expect:
+		gpu.getBackgroundTileMapBase(0x08) == 0x9C00
+	}
+
+	// === getWindowTileMapBase ===
+
+	def "getWindowTileMapBase returns 0x9800 when LCDC bit 6 is clear"() {
+		expect:
+		gpu.getWindowTileMapBase(0x00) == 0x9800
+	}
+
+	def "getWindowTileMapBase returns 0x9C00 when LCDC bit 6 is set"() {
+		expect:
+		gpu.getWindowTileMapBase(0x40) == 0x9C00
+	}
+
+	// === readTileIndex ===
+
+	def "readTileIndex reads unsigned byte when useUnsigned is true"() {
+		given: "tile map at 0x9800 has value 200 at column 0, row 0"
+		mmu.setByte(0x9800, 200)
+
+		expect:
+		gpu.readTileIndex(0x9800, 0, 0, true) == 200
+	}
+
+	def "readTileIndex reads signed byte when useUnsigned is false"() {
+		given: "tile map at 0x9800 has value 200 (signed: -56) at column 0, row 0"
+		mmu.setByte(0x9800, 200)
+
+		expect: "200 interpreted as signed byte is -56"
+		gpu.readTileIndex(0x9800, 0, 0, false) == -56
+	}
+
+	def "readTileIndex computes correct address from tileMapBase, row, and column"() {
+		given: "tile map at 0x9800 + row 1 (offset 32) + column 3 = 0x9823"
+		mmu.setByte(0x9823, 42)
+
+		expect:
+		gpu.readTileIndex(0x9800, 32, 3, true) == 42
+	}
+
+	// === resolveTileDataAddress ===
+
+	def "resolveTileDataAddress with unsigned mode computes address from 0x8000 base"() {
+		expect: "tile index 2 at 0x8000: 0x8000 + (2 + 0) * 16 = 0x8020"
+		gpu.resolveTileDataAddress(0x8000, true, 2) == 0x8020
+	}
+
+	def "resolveTileDataAddress with signed mode applies offset 128"() {
+		expect: "tile index 0 at 0x8800 signed: 0x8800 + (0 + 128) * 16 = 0x9000"
+		gpu.resolveTileDataAddress(0x8800, false, 0) == 0x9000
+	}
+
+	def "resolveTileDataAddress with signed mode and negative tile index"() {
+		expect: "tile index -1 at 0x8800 signed: 0x8800 + (-1 + 128) * 16 = 0x8FF0"
+		gpu.resolveTileDataAddress(0x8800, false, -1) == 0x8FF0
+	}
+
+	// === renderBackgroundPixel ===
+
+	def "renderBackgroundPixel stores color index in backgroundColorIndices and writes shade"() {
+		given: "enable BG rendering: LCDC = 0x91, BGP identity palette"
+		mmu.setByte(MMU.LCD_CONTROLLER, 0x91)
+		mmu.setByte(MMU.PALETTE_BGP, 0xE4)
+
+		when:
+		gpu.renderBackgroundPixel(5, 2)
+
+		then: "pixel 5 at line 0 has shade 2"
+		gpu.frameBuffer.getPixels()[5][0] == 2
+	}
+
+	def "renderBackgroundPixel applies palette mapping for non-identity palette"() {
+		given: "BGP palette maps color index 1 to shade 3"
+		mmu.setByte(MMU.LCD_CONTROLLER, 0x91)
+		mmu.setByte(MMU.PALETTE_BGP, 0x0C)  // bits 3-2 = 11 → color 1 maps to shade 3
+
+		when:
+		gpu.renderBackgroundPixel(0, 1)
+
+		then:
+		gpu.frameBuffer.getPixels()[0][0] == 3
 	}
 
 	// === Helper methods ===

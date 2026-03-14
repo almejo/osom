@@ -192,14 +192,14 @@ public class MMU {
 	}
 
 	public int getWord(int address) {
-		return getByte(address + 1) << 8 | getByte(address);
+		return getByte((address + 1) & 0xFFFF) << 8 | getByte(address & 0xFFFF);
 	}
 
 	public void setWord(int address, int word) {
 		int hi = word >> 8;
 		int lo = word & 0x00ff;
-		setByte(address + 1, hi);
-		setByte(address, lo);
+		setByte((address + 1) & 0xFFFF, hi);
+		setByte(address & 0xFFFF, lo);
 	}
 
 	public int getByteSigned(int address) {
