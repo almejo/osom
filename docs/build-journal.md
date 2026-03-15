@@ -403,3 +403,29 @@ This is an append-only learning log documenting decisions, discoveries, and less
 - `src/test/groovy/com/almejo/osom/gpu/WindowRenderingSpec.groovy` — New: 18 Spock tests covering window rendering scenarios
 - `src/test/groovy/com/almejo/osom/gpu/GPUSpec.groovy` — New: unit tests for extracted tile addressing helpers
 - `src/test/groovy/com/almejo/osom/memory/MMUSpec.groovy` — New: unit tests for getWord/setWord address wrapping
+
+---
+
+### 2026-03-14 — Playable Tetris: MVP Achieved (Story 4.2)
+
+**What:** Manual validation confirmed Tetris is fully playable from boot to game over and restart. This is the "I built it" milestone — OSOM is a working Game Boy emulator.
+
+**What we learned:** All subsystems (CPU with 500/512 opcodes, GPU with 3 rendering layers, MMU, timer, joypad) work together well enough to run a real commercial game. The emulator is responsive with no visible stuttering at 60 FPS. Sound is absent (APU not implemented, Epic 8 backlog) but gameplay is unaffected. Dr. Mario shows its title screen but doesn't start — likely needs further opcode or timing work. Super Mario Land requires MBC1 bank switching (Epic 9, story 9.2).
+
+**Changes:**
+- No code changes — manual validation story
+- Epic 4 (Interactive Gameplay — Playable Tetris) marked done
+
+---
+
+### 2026-03-14 — Sprite X-Coordinate Priority (Story 5.3)
+
+**What:** Implemented DMG sprite priority: sprites with lower X coordinates render on top of sprites with higher X, with OAM index as tiebreaker for equal X.
+
+**Hardware concept:** The Game Boy DMG sprite priority system determines which sprite "wins" when multiple sprites overlap at the same pixel. The smallest X coordinate has highest priority. When X coordinates are equal, the sprite with the lowest OAM index (earliest in OAM memory at 0xFE00-0xFE9F) wins. The 10-sprite-per-scanline limit selects sprites by OAM scan order first; X-priority sorting is applied only among the selected sprites. Color index 0 remains transparent — if the winning sprite has a transparent pixel, lower-priority sprites can show through. The BG priority flag (attribute bit 7) is evaluated per-sprite independently after priority resolution: if the winning sprite has BG priority and the background color index is non-zero, the background shows (not a lower-priority sprite).
+
+**What we learned:** A naive reverse-render painter's algorithm (lowest priority first, highest last) handles most cases but fails when a high-priority sprite has the BG priority flag set. In that case, the background should show — not a lower-priority sprite that painted earlier. The correct approach is forward iteration (highest priority first) with a per-pixel claimed buffer: non-transparent pixels claim positions, preventing lower-priority sprites from writing. BG priority evaluation happens after claiming, so the background pixel (already correct from the background render pass) is preserved naturally without any explicit "restore" step. Java's `Arrays.sort` with a Comparator is a stable sort (TimSort), which preserves OAM order for sprites with equal X — exactly the tiebreaker behavior needed.
+
+**Changes:**
+- `src/main/java/com/almejo/osom/gpu/GPU.java` — Refactored `renderSprites()` from single-pass to three-pass: `collectVisibleSprites()` returns a right-sized `int[][]`, sort by X coordinate (stable), render forward with a local `boolean[]` per-pixel claimed buffer passed to `renderSingleSprite()`. No instance fields added — all data flows through parameters and return values.
+- `src/test/groovy/com/almejo/osom/gpu/SpriteXPrioritySpec.groovy` — New: 18 Spock tests covering X-priority, OAM tiebreaker, transparency pass-through, three-sprite layering, BG priority interaction, 10-sprite limit with X-sort, X-flip, 8x16 sprites, and stress test with 10 sprites at same X.

@@ -210,50 +210,6 @@ class GPUSpec extends Specification {
 		gpu.decodeTileColorIndex(0x80, 0x80, 7) == 3
 	}
 
-	// === renderSpritePixel ===
-
-	def "renderSpritePixel does not write when colorIndex is 0 (transparent)"() {
-		given: "framebuffer pixel is initially 0"
-		gpu.renderSpritePixel(0, 0, false, false)
-
-		expect: "pixel unchanged"
-		gpu.frameBuffer.getPixels()[0][0] == 0
-	}
-
-	def "renderSpritePixel writes shade to framebuffer for non-zero colorIndex"() {
-		when:
-		gpu.renderSpritePixel(5, 1, false, false)
-
-		then: "pixel at (5, 0) has shade 1 from OBP0 identity palette"
-		gpu.frameBuffer.getPixels()[5][0] == 1
-	}
-
-	def "renderSpritePixel does not write when hidden behind background"() {
-		given: "render a line with non-zero background at pixel 0"
-		mmu.setByte(MMU.LCD_CONTROLLER, 0x93)
-		mmu.setByte(MMU.PALETTE_BGP, 0xE4)
-		writeTileRow(0, 0, 0xFF, 0x00)
-		mmu.setByte(0x9800, 0)
-		renderLineForSetup()
-
-		when: "sprite tries to render with BG priority at pixel 0"
-		gpu.renderSpritePixel(0, 3, true, false)
-
-		then: "pixel keeps background shade (1), not sprite shade (3)"
-		gpu.frameBuffer.getPixels()[0][0] == 1
-	}
-
-	def "renderSpritePixel uses OBP1 palette when usePalette1 is true"() {
-		given: "OBP1 set to reversed palette"
-		mmu.setByte(MMU.PALETTE_OBP1, 0x1B)
-
-		when: "render with usePalette1=true, color index 1"
-		gpu.renderSpritePixel(10, 1, false, true)
-
-		then: "shade is from OBP1 reversed palette: color index 1 → shade 2"
-		gpu.frameBuffer.getPixels()[10][0] == 2
-	}
-
 	// === getTileDataBase ===
 
 	def "getTileDataBase returns 0x8000 when LCDC bit 4 is set"() {

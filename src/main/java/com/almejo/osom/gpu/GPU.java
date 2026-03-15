@@ -224,50 +224,86 @@ public class GPU {
 	private void renderSprites() {
 		int control = getControlInfo();
 		int spriteHeight = getSpriteHeight(control);
-		int spritesOnLine = 0;
 
-		for (int sprite = 0; sprite < OAM_ENTRY_COUNT; sprite++) {
-			if (spritesOnLine >= MAX_SPRITES_PER_LINE) {
-				break;
-			}
+		int[][] visibleSprites = collectVisibleSprites(spriteHeight);
 
+		Arrays.sort(visibleSprites, (spriteA, spriteB) -> Integer.compare(spriteA[1], spriteB[1]));
+
+		boolean[] pixelClaimed = new boolean[SCREEN_WIDTH];
+
+		for (int[] visibleSprite : visibleSprites) {
+			renderSingleSprite(visibleSprite, spriteHeight, pixelClaimed);
+		}
+	}
+
+	int[][] collectVisibleSprites(int spriteHeight) {
+		int[][] collected = new int[MAX_SPRITES_PER_LINE][4];
+		int visibleCount = 0;
+
+		for (int sprite = 0; sprite < OAM_ENTRY_COUNT && visibleCount < MAX_SPRITES_PER_LINE; sprite++) {
 			int oamAddress = OAM_BASE_ADDRESS + sprite * OAM_ENTRY_SIZE;
 			int yPosition = mmu.getByte(oamAddress);
-			int xPosition = mmu.getByte(oamAddress + 1);
-			int tileIndex = mmu.getByte(oamAddress + 2);
-			int attributes = mmu.getByte(oamAddress + 3);
-
 			int spriteY = yPosition - SPRITE_Y_OFFSET;
+
 			if (!isSpriteOnScanline(spriteY, spriteHeight)) {
 				continue;
 			}
 
-			spritesOnLine++;
+			collected[visibleCount][0] = spriteY;
+			collected[visibleCount][1] = mmu.getByte(oamAddress + 1);
+			collected[visibleCount][2] = mmu.getByte(oamAddress + 2);
+			collected[visibleCount][3] = mmu.getByte(oamAddress + 3);
+			visibleCount++;
+		}
 
-			boolean xFlip = BitUtils.isBitSetted(attributes, SPRITE_ATTR_X_FLIP);
-			boolean yFlip = BitUtils.isBitSetted(attributes, SPRITE_ATTR_Y_FLIP);
-			boolean bgPriority = BitUtils.isBitSetted(attributes, SPRITE_ATTR_BG_PRIORITY);
-			boolean usePalette1 = BitUtils.isBitSetted(attributes, SPRITE_ATTR_PALETTE);
+		return Arrays.copyOf(collected, visibleCount);
+	}
 
-			int tileRow = resolveSpriteTileRow(line - spriteY, spriteHeight, yFlip);
-			int[] adjusted = adjustTileIndexForDoubleHeight(tileIndex, tileRow, spriteHeight);
-			tileIndex = adjusted[0];
-			tileRow = adjusted[1];
+	void renderSingleSprite(int[] spriteData, int spriteHeight, boolean[] pixelClaimed) {
+		int spriteY = spriteData[0];
+		int xPosition = spriteData[1];
+		int tileIndex = spriteData[2];
+		int attributes = spriteData[3];
 
-			int tileDataAddress = TILE_DATA_UNSIGNED_BASE + tileIndex * BYTES_PER_TILE + tileRow * BYTES_PER_TILE_ROW;
-			int byte1 = mmu.getByte(tileDataAddress);
-			int byte2 = mmu.getByte(tileDataAddress + 1);
+		boolean xFlip = BitUtils.isBitSetted(attributes, SPRITE_ATTR_X_FLIP);
+		boolean yFlip = BitUtils.isBitSetted(attributes, SPRITE_ATTR_Y_FLIP);
+		boolean bgPriority = BitUtils.isBitSetted(attributes, SPRITE_ATTR_BG_PRIORITY);
+		boolean usePalette1 = BitUtils.isBitSetted(attributes, SPRITE_ATTR_PALETTE);
 
-			for (int column = 0; column < TILE_WIDTH_PIXELS; column++) {
-				int screenX = xPosition - SPRITE_X_OFFSET + column;
-				if (isPixelOffScreen(screenX)) {
-					continue;
-				}
+		int tileRow = resolveSpriteTileRow(line - spriteY, spriteHeight, yFlip);
+		int[] adjusted = adjustTileIndexForDoubleHeight(tileIndex, tileRow, spriteHeight);
+		tileIndex = adjusted[0];
+		tileRow = adjusted[1];
 
-				int bit = xFlip ? column : (TILE_WIDTH_PIXELS - 1) - column;
-				int colorIndex = decodeTileColorIndex(byte1, byte2, bit);
-				renderSpritePixel(screenX, colorIndex, bgPriority, usePalette1);
+		int tileDataAddress = TILE_DATA_UNSIGNED_BASE + tileIndex * BYTES_PER_TILE + tileRow * BYTES_PER_TILE_ROW;
+		int byte1 = mmu.getByte(tileDataAddress);
+		int byte2 = mmu.getByte(tileDataAddress + 1);
+
+		for (int column = 0; column < TILE_WIDTH_PIXELS; column++) {
+			int screenX = xPosition - SPRITE_X_OFFSET + column;
+			if (isPixelOffScreen(screenX)) {
+				continue;
 			}
+			if (pixelClaimed[screenX]) {
+				continue;
+			}
+
+			int bit = xFlip ? column : (TILE_WIDTH_PIXELS - 1) - column;
+			int colorIndex = decodeTileColorIndex(byte1, byte2, bit);
+
+			if (colorIndex == 0) {
+				continue;
+			}
+
+			pixelClaimed[screenX] = true;
+
+			if (isHiddenBehindBackground(bgPriority, screenX)) {
+				continue;
+			}
+
+			int palette = usePalette1 ? mmu.getByte(MMU.PALETTE_OBP1) : mmu.getByte(MMU.PALETTE_OBP0);
+			int shade = (palette >> (colorIndex * 2)) & 0x03;
+			frameBuffer.setPixel(screenX, line, shade);
 		}
 	}
 
@@ -309,20 +345,6 @@ public class GPU {
 		int colorIndex = BitUtils.isBitSetted(byte1, bit) ? 1 : 0;
 		colorIndex |= (BitUtils.isBitSetted(byte2, bit) ? 1 : 0) << 1;
 		return colorIndex;
-	}
-
-	void renderSpritePixel(int screenX, int colorIndex, boolean bgPriority, boolean usePalette1) {
-		if (colorIndex == 0) {
-			return;
-		}
-
-		if (isHiddenBehindBackground(bgPriority, screenX)) {
-			return;
-		}
-
-		int palette = usePalette1 ? mmu.getByte(MMU.PALETTE_OBP1) : mmu.getByte(MMU.PALETTE_OBP0);
-		int shade = (palette >> (colorIndex * 2)) & 0x03;
-		frameBuffer.setPixel(screenX, line, shade);
 	}
 
 	private boolean spritesEnabled(int control) {
