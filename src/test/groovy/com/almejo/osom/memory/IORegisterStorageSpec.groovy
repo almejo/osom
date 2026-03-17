@@ -162,8 +162,9 @@ class IORegisterStorageSpec extends Specification {
 		mmu.setByte(0xC000, 0xAA)
 		mmu.setByte(0xC001, 0xBB)
 
-		when: "writing to DMA register"
+		when: "writing to DMA register and completing DMA timing"
 		mmu.setByte(MMU.DMA_ADDRESS, 0xC0)
+		mmu.updateDma(MMU.DMA_DURATION_CYCLES)
 
 		then: "DMA transfer copies data to OAM"
 		mmu.getByte(0xFE00) == 0xAA

@@ -28,14 +28,14 @@ class HALTSpec extends Specification {
 		given: "CPU is halted at 0xC000"
 		cpu.PC.setValue(0xC000)
 		cpu.halted = true
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 		int initialPC = cpu.PC.getValue()
 
 		when: "execute is called"
 		cpu.execute()
 
 		then: "4 T-cycles consumed, PC unchanged"
-		cpu.clock.getT() - initialT == 4
+		cpu.getClockT() - initialT == 4
 		cpu.PC.getValue() == initialPC
 	}
 

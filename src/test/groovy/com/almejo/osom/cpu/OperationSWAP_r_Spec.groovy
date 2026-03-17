@@ -18,7 +18,7 @@ class OperationSWAP_r_Spec extends Specification {
 		cpu.PC.setValue(0xC000)
 		mmu.setByte(0xC000, 0xCB)
 		mmu.setByte(0xC001, 0x37)
-		int initialClockT = cpu.clock.getT()
+		int initialClockT = cpu.getClockT()
 
 		when: "instruction executes"
 		cpu.execute()
@@ -30,7 +30,7 @@ class OperationSWAP_r_Spec extends Specification {
 		cpu.PC.getValue() == 0xC002
 
 		and: "cycle count is 8 T-cycles"
-		cpu.clock.getT() - initialClockT == 8
+		cpu.getClockT() - initialClockT == 8
 
 		and: "flags: Z=0, N=0, H=0, C=0"
 		!cpu.isFlagSetted(Z80Cpu.FLAG_ZERO)

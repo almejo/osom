@@ -21,14 +21,14 @@ class ConditionalJumpSpec extends Specification {
 		mmu.setByte(0xC001, 0x34) // low byte
 		mmu.setByte(0xC002, 0x12) // high byte
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, false)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
 
 		then: "PC=0x1234, taken: 16 T-cycles"
 		cpu.PC.getValue() == 0x1234
-		cpu.clock.getT() - initialT == 16
+		cpu.getClockT() - initialT == 16
 	}
 
 	def "JP NZ does NOT jump when Z=1"() {
@@ -38,14 +38,14 @@ class ConditionalJumpSpec extends Specification {
 		mmu.setByte(0xC001, 0x34)
 		mmu.setByte(0xC002, 0x12)
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, true)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
 
 		then: "PC=0xC003, not-taken: 12 T-cycles"
 		cpu.PC.getValue() == 0xC003
-		cpu.clock.getT() - initialT == 12
+		cpu.getClockT() - initialT == 12
 	}
 
 	// --- JP NC,nn (0xD2) ---
@@ -120,14 +120,14 @@ class ConditionalJumpSpec extends Specification {
 		mmu.setByte(0xC000, 0x30)
 		mmu.setByte(0xC001, 0x05) // +5
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, false)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
 
 		then: "PC = 0xC000 + 2 + 5 = 0xC007, taken: 12 T-cycles"
 		cpu.PC.getValue() == 0xC007
-		cpu.clock.getT() - initialT == 12
+		cpu.getClockT() - initialT == 12
 	}
 
 	def "JR NC does NOT jump when C=1"() {
@@ -136,14 +136,14 @@ class ConditionalJumpSpec extends Specification {
 		mmu.setByte(0xC000, 0x30)
 		mmu.setByte(0xC001, 0x05)
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, true)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
 
 		then: "PC=0xC002, not-taken: 8 T-cycles"
 		cpu.PC.getValue() == 0xC002
-		cpu.clock.getT() - initialT == 8
+		cpu.getClockT() - initialT == 8
 	}
 
 	// --- JR C,n (0x38) ---

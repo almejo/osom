@@ -45,6 +45,10 @@ public class MMU {
 	public static final int WINDOW_Y = 0xFF4A;
 	public static final int WINDOW_X = 0xFF4B;
 
+	static final int DMA_DURATION_CYCLES = 640;
+	private static final int HRAM_START = 0xFF80;
+	private static final int HRAM_END = 0xFFFE;
+
 	private boolean useBios;
 	private final int[] ram = new int[0xffff + 1];
 	private final int[] external = new int[0x1fff + 1];
@@ -54,6 +58,9 @@ public class MMU {
 	private Z80Cpu cpu;
 	@Setter
 	private Joypad joypad;
+	private boolean dmaActive;
+	private int dmaCyclesRemaining;
+	private boolean dmaTransferInProgress;
 
 	public MMU(boolean useBios) throws IOException {
 		this.useBios = useBios;
@@ -70,6 +77,9 @@ public class MMU {
 
 	public void setByte(int address, int value) {
 		value &= 0x00ff;
+		if (dmaActive && !dmaTransferInProgress && !isDmaAccessible(address)) {
+			return;
+		}
 		if (address >= 0x8000 && address <= 0x9fff) {
 			ram[address] = value;
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
@@ -124,9 +134,37 @@ public class MMU {
 
 	private void doDMATransfer(int value) {
 		int address = value << 8; // source address is data * 100
-		for (int i = 0; i < 0xA0; i++) {
-			setByte(0xFE00 + i, getByte(address + i));
+		dmaTransferInProgress = true;
+		try {
+			for (int i = 0; i < 0xA0; i++) {
+				setByte(0xFE00 + i, getByte(address + i));
+			}
+		} finally {
+			dmaTransferInProgress = false;
 		}
+		dmaActive = true;
+		dmaCyclesRemaining = DMA_DURATION_CYCLES;
+	}
+
+	public void updateDma(int cycles) {
+		if (!dmaActive) {
+			return;
+		}
+		dmaCyclesRemaining -= cycles;
+		if (dmaCyclesRemaining <= 0) {
+			dmaActive = false;
+			dmaCyclesRemaining = 0;
+		}
+	}
+
+	boolean isDmaActive() {
+		return dmaActive;
+	}
+
+	private boolean isDmaAccessible(int address) {
+		return (address >= HRAM_START && address <= HRAM_END)
+				|| address == INTERRUPT_ENABLED_ADDRESS
+				|| address == DMA_ADDRESS;
 	}
 
 	private void updateTimerFrequency(int value) {
@@ -142,6 +180,9 @@ public class MMU {
 	}
 
 	public int getByte(int address) {
+		if (dmaActive && !dmaTransferInProgress && !isDmaAccessible(address)) {
+			return 0xFF;
+		}
 		if (address >= 0 && address <= 0x7fff) {
 			if (useBios && address <= 0x100) {
 				if (address == 0x100) {

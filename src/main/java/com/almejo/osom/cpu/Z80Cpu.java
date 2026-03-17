@@ -60,7 +60,7 @@ public class Z80Cpu {
 
 	public final Register PC = new Register("PC");
 	final Register SP = new Register("SP");
-	public final Clock clock = new Clock();
+	private final Clock clock = new Clock();
 	@Getter
 	@Setter
 	private boolean halted;
@@ -631,6 +631,10 @@ public class Z80Cpu {
 
     public int getProgramCounter() {
 		return PC.getValue();
+	}
+
+	public int getClockT() {
+		return clock.getT();
 	}
 
 	public void execute() {

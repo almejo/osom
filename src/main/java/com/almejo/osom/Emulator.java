@@ -21,9 +21,19 @@ public class Emulator {
 
 	private Z80Cpu cpu;
 	private GPU gpu;
+	private MMU mmu;
 
 	@Getter
 	private int totalCycles;
+
+	Emulator(Z80Cpu cpu, GPU gpu, MMU mmu) {
+		this.cpu = cpu;
+		this.gpu = gpu;
+		this.mmu = mmu;
+	}
+
+	public Emulator() {
+	}
 
 	public void initialize(boolean bootBios, String file, FrameBuffer frameBuffer, Joypad joypad, boolean trace) throws IOException {
 		if (bootBios) {
@@ -37,7 +47,7 @@ public class Emulator {
 		Path path = Paths.get(file);
 		gpu = new GPU();
 		byte[] bytes = Files.readAllBytes(path);
-		MMU mmu = new MMU(bootBios);
+		mmu = new MMU(bootBios);
 		mmu.setJoypad(joypad);
 		gpu.setMmu(mmu);
 		gpu.setFrameBuffer(frameBuffer);
@@ -54,10 +64,11 @@ public class Emulator {
 		int cyclesToScreen = CYCLES_PER_FRAME;
 
 		while (cyclesToScreen > 0) {
-			int oldCycles = cpu.clock.getT();
+			int oldCycles = cpu.getClockT();
 			cpu.execute();
-			int cycles = cpu.clock.getT() - oldCycles;
+			int cycles = cpu.getClockT() - oldCycles;
 			totalCycles += cycles;
+			mmu.updateDma(cycles);
 			cpu.updateTimers(cycles);
 			cpu.checkInterrupts();
 			gpu.update(cycles);

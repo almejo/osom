@@ -22,7 +22,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12) // high byte
 		mmu.setByte(0xC000, 0xC0) // RET NZ
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, false)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -32,7 +32,7 @@ class ConditionalReturnSpec extends Specification {
 		cpu.SP.getValue() == 0xDFFE
 
 		and: "taken path: 20 T-cycles"
-		cpu.clock.getT() - initialT == 20
+		cpu.getClockT() - initialT == 20
 	}
 
 	def "RET NZ does NOT pop stack when Z flag is set"() {
@@ -43,7 +43,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12)
 		mmu.setByte(0xC000, 0xC0) // RET NZ
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, true)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -53,7 +53,7 @@ class ConditionalReturnSpec extends Specification {
 		cpu.SP.getValue() == 0xDFFC
 
 		and: "not-taken path: 8 T-cycles"
-		cpu.clock.getT() - initialT == 8
+		cpu.getClockT() - initialT == 8
 	}
 
 	// --- RET Z (0xC8) ---
@@ -66,7 +66,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12)
 		mmu.setByte(0xC000, 0xC8) // RET Z
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, true)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -74,7 +74,7 @@ class ConditionalReturnSpec extends Specification {
 		then:
 		cpu.PC.getValue() == 0x1234
 		cpu.SP.getValue() == 0xDFFE
-		cpu.clock.getT() - initialT == 20
+		cpu.getClockT() - initialT == 20
 	}
 
 	def "RET Z does NOT pop stack when Z flag is clear"() {
@@ -85,7 +85,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12)
 		mmu.setByte(0xC000, 0xC8) // RET Z
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, false)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -93,7 +93,7 @@ class ConditionalReturnSpec extends Specification {
 		then:
 		cpu.PC.getValue() == 0xC001
 		cpu.SP.getValue() == 0xDFFC
-		cpu.clock.getT() - initialT == 8
+		cpu.getClockT() - initialT == 8
 	}
 
 	// --- RET NC (0xD0) ---
@@ -106,7 +106,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12)
 		mmu.setByte(0xC000, 0xD0) // RET NC
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, false)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -114,7 +114,7 @@ class ConditionalReturnSpec extends Specification {
 		then:
 		cpu.PC.getValue() == 0x1234
 		cpu.SP.getValue() == 0xDFFE
-		cpu.clock.getT() - initialT == 20
+		cpu.getClockT() - initialT == 20
 	}
 
 	def "RET NC does NOT pop stack when C flag is set"() {
@@ -125,7 +125,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12)
 		mmu.setByte(0xC000, 0xD0) // RET NC
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, true)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -133,7 +133,7 @@ class ConditionalReturnSpec extends Specification {
 		then:
 		cpu.PC.getValue() == 0xC001
 		cpu.SP.getValue() == 0xDFFC
-		cpu.clock.getT() - initialT == 8
+		cpu.getClockT() - initialT == 8
 	}
 
 	// --- RET C (0xD8) ---
@@ -146,7 +146,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12)
 		mmu.setByte(0xC000, 0xD8) // RET C
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, true)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -154,7 +154,7 @@ class ConditionalReturnSpec extends Specification {
 		then:
 		cpu.PC.getValue() == 0x1234
 		cpu.SP.getValue() == 0xDFFE
-		cpu.clock.getT() - initialT == 20
+		cpu.getClockT() - initialT == 20
 	}
 
 	def "RET C does NOT pop stack when C flag is clear"() {
@@ -165,7 +165,7 @@ class ConditionalReturnSpec extends Specification {
 		mmu.setByte(0xDFFD, 0x12)
 		mmu.setByte(0xC000, 0xD8) // RET C
 		cpu.setFlag(Z80Cpu.FLAG_CARRY, false)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -173,6 +173,6 @@ class ConditionalReturnSpec extends Specification {
 		then:
 		cpu.PC.getValue() == 0xC001
 		cpu.SP.getValue() == 0xDFFC
-		cpu.clock.getT() - initialT == 8
+		cpu.getClockT() - initialT == 8
 	}
 }

@@ -26,7 +26,7 @@ class ConditionalCallSpec extends Specification {
 		given:
 		setupCallInstruction(0xC4, 0x1234)
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, false)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -36,14 +36,14 @@ class ConditionalCallSpec extends Specification {
 		cpu.SP.getValue() == 0xDFFC
 		mmu.getByte(0xDFFC) == 0x03 // low byte of 0xC003
 		mmu.getByte(0xDFFD) == 0xC0 // high byte
-		cpu.clock.getT() - initialT == 24
+		cpu.getClockT() - initialT == 24
 	}
 
 	def "CALL NZ does NOT call when Z=1"() {
 		given:
 		setupCallInstruction(0xC4, 0x1234)
 		cpu.setFlag(Z80Cpu.FLAG_ZERO, true)
-		int initialT = cpu.clock.getT()
+		int initialT = cpu.getClockT()
 
 		when:
 		cpu.execute()
@@ -51,7 +51,7 @@ class ConditionalCallSpec extends Specification {
 		then: "PC=0xC003, SP unchanged"
 		cpu.PC.getValue() == 0xC003
 		cpu.SP.getValue() == 0xDFFE
-		cpu.clock.getT() - initialT == 12
+		cpu.getClockT() - initialT == 12
 	}
 
 	// --- CALL Z,nn (0xCC) ---

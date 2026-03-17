@@ -19,7 +19,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.AF.setLo(0xF0)
 		cpu.PC.setValue(0xC000)
 		mmu.setByte(0xC000, 0x79)
-		int initialClockT = cpu.clock.getT()
+		int initialClockT = cpu.getClockT()
 
 		when: "instruction executes"
 		cpu.execute()
@@ -31,7 +31,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.PC.getValue() == 0xC001
 
 		and: "cycle count is 4 T-cycles"
-		cpu.clock.getT() - initialClockT == 4
+		cpu.getClockT() - initialClockT == 4
 
 		and: "flags unchanged (all four remain set)"
 		cpu.isFlagSetted(Z80Cpu.FLAG_ZERO)
@@ -47,7 +47,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.AF.setLo(0xF0)
 		cpu.PC.setValue(0xC000)
 		mmu.setByte(0xC000, 0x7A)
-		int initialClockT = cpu.clock.getT()
+		int initialClockT = cpu.getClockT()
 
 		when: "instruction executes"
 		cpu.execute()
@@ -59,7 +59,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.PC.getValue() == 0xC001
 
 		and: "cycle count is 4 T-cycles"
-		cpu.clock.getT() - initialClockT == 4
+		cpu.getClockT() - initialClockT == 4
 
 		and: "flags unchanged (all four remain set)"
 		cpu.isFlagSetted(Z80Cpu.FLAG_ZERO)
@@ -75,7 +75,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.AF.setLo(0xF0)
 		cpu.PC.setValue(0xC000)
 		mmu.setByte(0xC000, 0x7A)
-		int initialClockT = cpu.clock.getT()
+		int initialClockT = cpu.getClockT()
 
 		when: "instruction executes"
 		cpu.execute()
@@ -87,7 +87,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.PC.getValue() == 0xC001
 
 		and: "cycle count is 4 T-cycles"
-		cpu.clock.getT() - initialClockT == 4
+		cpu.getClockT() - initialClockT == 4
 
 		and: "flags unchanged (all four remain set)"
 		cpu.isFlagSetted(Z80Cpu.FLAG_ZERO)
@@ -103,7 +103,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.AF.setLo(0xF0)
 		cpu.PC.setValue(0xC000)
 		mmu.setByte(0xC000, 0x7A)
-		int initialClockT = cpu.clock.getT()
+		int initialClockT = cpu.getClockT()
 
 		when: "instruction executes"
 		cpu.execute()
@@ -115,7 +115,7 @@ class OperationLD_A_r_Spec extends Specification {
 		cpu.PC.getValue() == 0xC001
 
 		and: "cycle count is 4 T-cycles"
-		cpu.clock.getT() - initialClockT == 4
+		cpu.getClockT() - initialClockT == 4
 
 		and: "flags unchanged (all four remain set)"
 		cpu.isFlagSetted(Z80Cpu.FLAG_ZERO)
