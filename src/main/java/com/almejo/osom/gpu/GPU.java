@@ -10,10 +10,10 @@ import java.util.Arrays;
 
 @Slf4j
 public class GPU {
-	private static final int H_BLANK = 0;
-	private static final int V_BLANK = 1;
-	private static final int SPRITES = 2;
-	private static final int GRAPHICS = 3;
+	public static final int H_BLANK = 0;
+	public static final int V_BLANK = 1;
+	public static final int SPRITES = 2;
+	public static final int GRAPHICS = 3;
 
 	private static final int OAM_CYCLES = 80;
 	private static final int RENDERING_CYCLES = 172;
@@ -210,14 +210,19 @@ public class GPU {
 	private void drawLine() {
 		int control = getControlInfo();
 		Arrays.fill(backgroundColorIndices, 0);
-		if (backgroundEnabled(control)) {
-			renderBackground(control);
-		}
-		if (windowEnabled(control)) {
-			renderWindow(control);
-		}
-		if (spritesEnabled(control)) {
-			renderSprites();
+		mmu.setPpuAccessInProgress(true);
+		try {
+			if (backgroundEnabled(control)) {
+				renderBackground(control);
+			}
+			if (windowEnabled(control)) {
+				renderWindow(control);
+			}
+			if (spritesEnabled(control)) {
+				renderSprites();
+			}
+		} finally {
+			mmu.setPpuAccessInProgress(false);
 		}
 	}
 

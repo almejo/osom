@@ -21,6 +21,8 @@ class SpriteRenderingSpec extends Specification {
 		mmu.setByte(MMU.LCD_CONTROLLER, 0x82)
 		// Set OBP0 to identity palette (0→0, 1→1, 2→2, 3→3)
 		mmu.setByte(MMU.PALETTE_OBP0, 0xE4)
+		// Allow OAM/VRAM test data writes (GPU internal mode stays SPRITES for renderLine)
+		mmu.setStatModeBits(GPU.H_BLANK)
 	}
 
 	/**

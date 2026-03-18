@@ -2,6 +2,7 @@ package com.almejo.osom.memory;
 
 import com.almejo.osom.cpu.BitUtils;
 import com.almejo.osom.cpu.Z80Cpu;
+import com.almejo.osom.gpu.GPU;
 import com.almejo.osom.input.Joypad;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,7 @@ public class MMU {
 	private boolean dmaActive;
 	private int dmaCyclesRemaining;
 	private boolean dmaTransferInProgress;
+	private boolean ppuAccessInProgress;
 
 	public MMU(boolean useBios) throws IOException {
 		this.useBios = useBios;
@@ -81,10 +83,16 @@ public class MMU {
 			return;
 		}
 		if (address >= 0x8000 && address <= 0x9fff) {
+			if (isVramBlocked()) {
+				return;
+			}
 			ram[address] = value;
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			external[address - 0xa000] = value;
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
+			if (isOamBlocked()) {
+				return;
+			}
 			sprites[address - 0xFE00] = value;
 		} else if (address == DMA_ADDRESS) {
 			ram[DMA_ADDRESS] = value;
@@ -161,10 +169,33 @@ public class MMU {
 		return dmaActive;
 	}
 
+	public void setPpuAccessInProgress(boolean active) {
+		this.ppuAccessInProgress = active;
+	}
+
 	private boolean isDmaAccessible(int address) {
 		return (address >= HRAM_START && address <= HRAM_END)
 				|| address == INTERRUPT_ENABLED_ADDRESS
 				|| address == DMA_ADDRESS;
+	}
+
+	private int getCurrentGpuMode() {
+		return ram[LCD_STATUS] & 0x03;
+	}
+
+	private boolean isLcdEnabled() {
+		return (ram[LCD_CONTROLLER] & 0x80) != 0;
+	}
+
+	private boolean isOamBlocked() {
+		int mode = getCurrentGpuMode();
+		return !ppuAccessInProgress && !dmaTransferInProgress
+				&& isLcdEnabled() && (mode == GPU.SPRITES || mode == GPU.GRAPHICS);
+	}
+
+	private boolean isVramBlocked() {
+		return !ppuAccessInProgress && !dmaTransferInProgress
+				&& isLcdEnabled() && getCurrentGpuMode() == GPU.GRAPHICS;
 	}
 
 	private void updateTimerFrequency(int value) {
@@ -193,10 +224,16 @@ public class MMU {
 			}
 			return this.cartridge.getByte(address);
 		} else if (address >= 0x8000 && address <= 0x9fff) {
+			if (isVramBlocked()) {
+				return 0xFF;
+			}
 			return ram[address];
 		} else if (address >= 0xA000 && address <= 0xBFFF) {
 			return external[address - 0xa000];
 		} else if (address >= 0xFE00 && address <= 0xFE9F) {
+			if (isOamBlocked()) {
+				return 0xFF;
+			}
 			return sprites[address - 0xFE00];
 		} else if (address >= 0xFEA0 && address <= 0xFEFF) {
 			return 0;

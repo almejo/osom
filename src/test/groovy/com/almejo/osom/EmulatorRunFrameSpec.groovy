@@ -29,6 +29,8 @@ class EmulatorRunFrameSpec extends Specification {
 		gpu = new GPU()
 		gpu.setMmu(mmu)
 		gpu.setFrameBuffer(new FrameBuffer())
+		// Allow OAM/VRAM test data writes (cpu.reset enables LCD, gpu.setMmu sets SPRITES mode)
+		mmu.setStatModeBits(GPU.H_BLANK)
 
 		emulator = new Emulator(cpu, gpu, mmu)
 	}
